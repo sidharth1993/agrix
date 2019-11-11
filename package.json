@@ -2,6 +2,7 @@
   "name": "agri-x",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://manoaravindhan.github.io/agrix",
   "dependencies": {
     "antd": "^3.25.1",
     "babel-plugin-import": "^1.12.2",
@@ -22,7 +23,9 @@
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
-    "eject": "react-app-rewired eject"
+    "eject": "react-app-rewired eject",
+    "predeploy": "yarn run build",
+   "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": "react-app"
