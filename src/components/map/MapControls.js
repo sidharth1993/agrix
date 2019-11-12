@@ -157,10 +157,10 @@ const steps = [
   }
 ];
 const stepStyle = {
-  marginTop: 8,
+  marginTop: 2,
   border: '1px dashed #e9e9e9',
   borderRadius: 6,
-  minHeight: 432,
+  minHeight: 375,
   textAlign: 'center'
 }
 const MapControls = ({ editAction, submit }) => {
@@ -224,7 +224,7 @@ const MapControls = ({ editAction, submit }) => {
     setEdit(false);
   }
   return (
-    <div className='zoom' style={{ position: 'absolute', right: '4%', bottom: '30%' }} >
+    <div className='zoom' style={{ position: 'absolute', right: '4%', bottom: '33%' }} >
       <button style={{ backgroundColor: `${edit ? '#004590' : ''}` }}><Icon type="edit" onClick={onEdit} /></button>{/* //#004590 */}
       <button disabled={!submit} onClick={() => setOpenModal('analysis')}><Icon type="check-circle" theme="filled" style={{ color: submit && '#52C41A' }} /></button>{/* //#004590 */}
       <Modal
@@ -244,6 +244,7 @@ const MapControls = ({ editAction, submit }) => {
           {current === 0 && <Result
             status="warning"
             title="The below listed blocks will not be accessible. Do you wish to continue?"
+            style={{height:180, padding:10}}
           />}
           {current === 0 && <Table
             columns={columns}
@@ -256,7 +257,7 @@ const MapControls = ({ editAction, submit }) => {
             current === 1 && <Table
               columns={columns}
               dataSource={blocks}
-              scroll={{ y: 300 }}
+              scroll={{ y: 240 }}
               rowSelection={rowSelection}
               bordered
               pagination={false}

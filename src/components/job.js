@@ -7,7 +7,7 @@ import DownloadDialog from './downloadDialog';
 const data = [
     {
         key: '1',
-        description: 'Telangana',
+        description: 'Netherlands',
         name: 'John Brown',
         createdOn: '2019-11-1 11:10:10',
         completed: 100,
@@ -15,7 +15,7 @@ const data = [
     },
     {
         key: '2',
-        description: 'Tamil Nadu',
+        description: 'Amsterdam',
         name: 'Joe Black',
         createdOn: '2019-11-1 11:10:10',
         completed: 70,
@@ -23,7 +23,7 @@ const data = [
     },
     {
         key: '3',
-        description: 'Karnataka',
+        description: 'Hague',
         name: 'Jim Green',
         createdOn: '2019-11-11 11:10:10',
         completed: 20,
@@ -31,7 +31,7 @@ const data = [
     },
     {
         key: '4',
-        description: 'Kerala',
+        description: 'Eindhoven',
         name: 'Jim Red',
         createdOn: '2019-11-19 11:10:10',
         completed: 90,
@@ -121,7 +121,7 @@ class Job extends React.Component {
                 title: 'ID',
                 dataIndex: 'key',
                 key: 'key',
-                width: '5%',
+                width: '10%',
                 sorter: (a, b) => a.key - b.key
             },
             {
@@ -164,10 +164,10 @@ class Job extends React.Component {
             },
             {
                 title: 'Actions',
-                width: '15%',
+                width: '20%',
                 render: c => {
                     return c.status === 'Completed' ? <span>
-                        <Link to='/'><Button type='link'><Icon type="eye" /></Button> </Link>
+                        <Link to='results'><Button type='link'><Icon type="eye" /></Button> </Link>
                         <Divider type='vertical' />
                         <Button type='link' onClick={() => this.showDownload(true)}><Icon type="download" /></Button>
                         <Divider type='vertical' />

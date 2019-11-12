@@ -16,40 +16,56 @@ import Proj4 from 'proj4/lib';
 import { register } from 'ol/proj/proj4';
 import isEqual from 'lodash/isEqual';
 import geo from './static/clipped_poly.js';
-import { filterGeo } from './utils/filter';
+import { filterGeo, filterLulc } from './utils/filter';
 import './styles/map.scss';
 import MapControl from './MapControls';
-import {Circle as CircleStyle} from 'ol/style';
-import {fromLonLat} from 'ol/proj';
-import {boundingExtent} from 'ol/extent';
+import { Circle as CircleStyle } from 'ol/style';
+import { fromLonLat } from 'ol/proj';
 
-const styles = new Style({
-  fill: new Fill({
-    color: 'rgba(255, 255, 255, 0.6)'
-  }),
+const colors = {
+  1: 'purple',
+  2: 'red',
+  3: 'pink',
+  4: 'indigo',
+  5: 'blue',
+  6: 'green',
+  7: 'lime',
+  8: 'orange',
+  9: 'brown',
+  10: 'gray',
+  11: 'deeporange',
+  'forest': 'green',
+  'other' : 'deeporange',
+  'agri' : 'purple',
+  'Water': 'blue'
+};
+
+
+const styles = (id, mainType) => id ? new Style({
   stroke: new Stroke({
-    color: '#319FD3',
+    color: colors[id],
     width: 1
   }),
-  image: new CircleStyle({
-    radius: 5,
-    fill: new Fill({
-      color: 'rgba(255, 255, 255, 0.6)'
-    }),
-    stroke: new Stroke({
-      color: '#319FD3',
-      width: 1
-    })
+  fill: new Fill({
+    color: colors[id]
   })
-});
+}) : new Style({
+  stroke: new Stroke({
+    color: 'blue',
+    width: 1
+  }),
+  fill: new Fill({
+    color: 'rgba(255, 255, 0, 0.1)'
+  })
+})
 
 const geoJsonObject = geo;
-const tamilNadu = fromLonLat([78.7047, 10.7905]);
+const tamilNadu = fromLonLat([6, 52.5]);
 class Map extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      center:[8709513.394721, 1180899.307219],
+      center: [8709513.394721, 1180899.307219],
       zoom: 1,
       initialView: false,
       showSubmit: false,
@@ -59,21 +75,17 @@ class Map extends Component {
     this.updateLegends = this.updateLegends.bind(this);
     Proj4.defs("EPSG:28992", "+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.417,50.3319,465.552,-0.398957,0.343988,-1.8774,4.0725 +units=m +no_defs");
     register(Proj4);
-    let vectorSource;
-    let vectorLayer;
-    vectorSource = new VectorSource({
-      url: geoJsonObject,
-      format: new GeoJSON()
-    });
-    vectorLayer = new VectorLayer({
+    let vectorSource = new VectorSource();
+    let lulcSource = new VectorSource();
+    let vectorLayer = new VectorLayer({
       source: vectorSource,
-      style: this.styleFunction
+      style: f => this.styleFunction(f,1)
     });
-    vectorLayer = new VectorLayer({
+    let lulcLayer = new VectorLayer({
       source: vectorSource,
-      style: styles
+      style: f => this.styleFunction(f,3)
     });
-    this.drawSource = new VectorSource({wrapX: false});
+    this.drawSource = new VectorSource({ wrapX: false });
     var drawVector = new VectorLayer({
       source: this.drawSource
     });
@@ -88,6 +100,7 @@ class Map extends Component {
           source: new OlSourceOSM()
         }),
         vectorLayer,
+        lulcLayer,
         drawVector
       ],
       controls: [
@@ -98,21 +111,36 @@ class Map extends Component {
       view: this.view
     });
   }
-  
-  styleFunction = feature => {
-    let {mainType} = this.props;
+
+  styleFunction = (feature, mainType) => {
     let id = mainType === 3 ? feature.values_.Hoofdgroep : feature.values_.GWS_GEWASC;
+    if(mainType === 3) console.log(id);
     return styles(id, mainType);
   };
   updateLegends = crops => {
-    let filtered = filterGeo(crops, this.props.mainType);
-    let vectorSource = new VectorSource({
-      features: (new GeoJSON({
-        dataProjection: 'EPSG:28992',
-        featureProjection: 'EPSG:3857'
-      })).readFeatures(filtered)
-    });
-    this.olmap.getLayers().array_[1].setSource(vectorSource);
+    if(this.props.logged && location.hash === '#/results'){
+      let filtered = filterGeo(crops, this.props.mainType);
+      let lulc = filterLulc();
+      let vectorSource = new VectorSource({
+        features: (new GeoJSON({
+          dataProjection: 'EPSG:28992',
+          featureProjection: 'EPSG:3857'
+        })).readFeatures(filtered)
+      });
+      let lulcSource = new VectorSource({
+        features: (new GeoJSON({
+          dataProjection: 'EPSG:28992',
+          featureProjection: 'EPSG:3857'
+        })).readFeatures(lulc)
+      });
+      this.olmap.getLayers().array_[1].setSource(vectorSource);
+      this.olmap.getLayers().array_[2].setSource(lulcSource);
+      this.view.animate({
+        center: tamilNadu,
+        zoom: 9,
+        duration: 2000
+      });
+    }
   };
 
   updateMap() {
@@ -123,26 +151,19 @@ class Map extends Component {
   componentDidMount() {
     this.olmap.setTarget("map");
     this.olmap.on("moveend", () => {
-      //let center = this.olmap.getView().getCenter();
       let zoom = this.olmap.getView().getZoom();
       this.setState({ zoom });
     });
-    setTimeout(()=>{
-      this.view.animate({
-        center: tamilNadu,
-        zoom: 7,
-        duration: 2000
-      });
-    },2000)
   }
   shouldComponentUpdate(nextProps, nextState) {
     let zoom = this.olmap.getView().getZoom();
-    if (zoom === nextState.zoom && this.props.mainType === nextProps.mainType && isEqual(this.props.subType, nextProps.mainType)) return false;
+    if (zoom === nextState.zoom && this.props.mainType === nextProps.mainType && this.props.logged === nextProps.logged && isEqual(this.props.subType, nextProps.mainType)) return false;
     return true;
   }
   componentDidUpdate() {
+    let me = this;
     let crop = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false, 9: false, 10: false, 11: false };
-    let { mainType, subType } = this.props;
+    let { mainType, subType, logged } = this.props;
     if (mainType === 1) {
       if (subType[101])
         crop[1] = true;
@@ -157,35 +178,44 @@ class Map extends Component {
       if (subType[203])
         crop = { ...crop, ...{ 8: true, 9: true, 10: true, 11: true } };
     }
-    if(mainType === 3){
-      crop = {urban:false, agri:false, other: false, forest:false, Water:false}
-      if(subType[301])
+    if (mainType === 3) {
+      crop = { urban: false, agri: false, other: false, forest: false, Water: false }
+      if (subType[301])
         crop.urban = true;
-      if(subType[302])
+      if (subType[302])
         crop.agri = true;
-        if(subType[303])
+      if (subType[303])
         crop.Water = true;
-      if(subType[304])
+      if (subType[304])
         crop.forest = true;
-        if(subType[305])
+      if (subType[305])
         crop.other = true;
     }
     this.updateLegends(crop);
+      if (logged && location.hash !== '#/results'){
+        setTimeout(() => {
+          me.view.animate({
+            center: tamilNadu,
+            zoom: 7,
+            duration: 2000
+          });
+        }, 1000);
+      }
   }
-  toggleEdit = (edit)=>{
-    if(edit){
+  toggleEdit = (edit) => {
+    if (edit) {
       this.draw = new Draw({
         source: this.drawSource,
         type: 'Polygon'
       });
       this.draw.on('drawend', event => {
-        this.setState(prevState=>{
-          prevState.showSubmit= true; 
+        this.setState(prevState => {
+          prevState.showSubmit = true;
           return prevState
         });
       });
       this.olmap.addInteraction(this.draw);
-    }else{
+    } else {
       this.olmap.removeInteraction(this.draw);
       this.draw.removeEventListener('drawend');
       this.draw = null;
@@ -193,10 +223,12 @@ class Map extends Component {
   }
   render() {
     this.updateMap();
-    return [
-      <div key='map' id="map" style={{ width: "100%", height: `${this.props.height-67}px` }} key='0'></div>,
-      <MapControl key='ctrl' editAction={this.toggleEdit} submit={this.state.showSubmit}/>
-    ];
+    return (
+      <>
+        <div key='map' id="map" style={{ width: "100%", height: `${this.props.height - 67}px` }} key='0'></div>
+        {this.props.logged && <MapControl key='ctrl' editAction={this.toggleEdit} submit={this.state.showSubmit} />}
+      </>
+    )
   }
 }
 Map.propTypes = {

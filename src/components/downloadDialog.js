@@ -24,7 +24,7 @@ function DownloadOptions({ open, close }) {
             <div style={{ height: 400 }}>
                 <Timeline pending="Output Types">
                     <TimelineItem dot={<Icon type="idcard" style={{ fontSize: '16px' }} />}><Row><Col span={4}>ID</Col><Col span={6}><Tag color="#f50">101</Tag></Col></Row></TimelineItem>
-                    <TimelineItem dot={<Icon type="bank" style={{ fontSize: '16px' }}  />}><Row><Col span={4}>Department</Col><Col span={6}><Tag color="#f50">Telangana</Tag></Col></Row></TimelineItem>
+                    <TimelineItem dot={<Icon type="bank" style={{ fontSize: '16px' }}  />}><Row><Col span={4}>Department</Col><Col span={6}><Tag color="#f50">Netherlands</Tag></Col></Row></TimelineItem>
                     <TimelineItem dot={<Icon type="smile" style={{ fontSize: '16px' }}  />}><Row><Col span={4}>Submitted By</Col><Col span={6}><Tag color="#f50">John Doe</Tag></Col></Row></TimelineItem>
                     <TimelineItem dot={<Icon type="schedule" style={{ fontSize: '16px' }}  />}><Row><Col span={4}>Created On</Col><Col span={6}><Tag color="#f50">2019-10-11</Tag></Col></Row></TimelineItem>
                     <TimelineItem dot={<Icon type="bug" style={{ fontSize: '16px' }} />}><Row><Col span={4}>Crop Type</Col><Col span={6}><Tag color="#f50">Rice</Tag></Col></Row></TimelineItem>
