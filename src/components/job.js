@@ -1,4 +1,4 @@
-import React from 'react';
+import React , { useState } from 'react';
 import { Table, Input, Button, Icon, Progress, Divider, notification } from 'antd';
 import Highlighter from 'react-highlight-words';
 import { Link } from 'react-router-dom';
@@ -39,35 +39,41 @@ const data = [
     },
 ];
 
-class Job extends React.Component {
-    state = {
-        searchText: '',
-        download: false
-    };
 
-    getColumnSearchProps = dataIndex => ({
+
+const defaultSearchText = '';
+const defaultDownload = false;
+
+function Job(){
+    const [searchText,setSearchText] = useState(defaultSearchText);
+    const [download,setDownload] = useState(defaultDownload);
+
+    let searchInput = null;
+
+
+    const getColumnSearchProps = dataIndex => ({
         filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
             <div style={{ padding: 8 }}>
                 <Input
                     ref={node => {
-                        this.searchInput = node;
+                        searchInput = node;
                     }}
                     placeholder={`Search ${dataIndex}`}
                     value={selectedKeys[0]}
                     onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-                    onPressEnter={() => this.handleSearch(selectedKeys, confirm)}
+                    onPressEnter={() => handleSearch(selectedKeys, confirm)}
                     style={{ width: 188, marginBottom: 8, display: 'block' }}
                 />
                 <Button
                     type="primary"
-                    onClick={() => this.handleSearch(selectedKeys, confirm)}
+                    onClick={() => handleSearch(selectedKeys, confirm)}
                     icon="search"
                     size="small"
                     style={{ width: 90, marginRight: 8 }}
                 >
                     Search
         </Button>
-                <Button onClick={() => this.handleReset(clearFilters)} size="small" style={{ width: 90 }}>
+                <Button onClick={() => handleReset(clearFilters)} size="small" style={{ width: 90 }}>
                     Reset
         </Button>
             </div>
@@ -82,32 +88,95 @@ class Job extends React.Component {
                 .includes(value.toLowerCase()),
         onFilterDropdownVisibleChange: visible => {
             if (visible) {
-                setTimeout(() => this.searchInput.select());
+                setTimeout(() => searchInput.select());
             }
         },
         render: text => (
             <Highlighter
                 highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
-                searchWords={[this.state.searchText]}
+                searchWords={[searchText]}
                 autoEscape
                 textToHighlight={text.toString()}
             />
         ),
     });
 
-    handleSearch = (selectedKeys, confirm) => {
+    const columns = [
+        {
+            title: 'ID',
+            dataIndex: 'key',
+            key: 'key',
+            width: '5%',
+            sorter: (a, b) => a.key - b.key
+        },
+        {
+            title: 'Department',
+            dataIndex: 'description',
+            key: 'description',
+            width: '15%',
+            ...getColumnSearchProps('description'),
+            sorter: (a, b) => a.key - b.key
+        },
+        {
+            title: 'Submitted By',
+            dataIndex: 'name',
+            key: 'name',
+            width: '15%',
+            ...getColumnSearchProps('name'),
+            sorter: (a, b) => a.key - b.key
+        },
+        {
+            title: 'Created On',
+            dataIndex: 'createdOn',
+            key: 'createdOn',
+            sorter: (a, b) => a.key - b.key
+        },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+            ...getColumnSearchProps('status'),
+            sorter: (a, b) => a.key - b.key
+    
+        },
+        {
+            title: 'Completed(%)',
+            dataIndex: 'completed',
+            key: 'completed',
+            ...getColumnSearchProps('completed'),
+            sorter: (a, b) => a.completed - b.completed,
+            render: c => <Progress percent={c} status={(c < 100)?"active":"success"} />
+        },
+        {
+            title: 'Actions',
+            width: '15%',
+            render: c => {
+                return c.status === 'Completed' ? <span>
+                    <Link to='results'><Button type='link'><Icon type="eye" /></Button> </Link>
+                    <Divider type='vertical' />
+                    <Button type='link' onClick={() => showDownload(true)}><Icon type="download" /></Button>
+                    <Divider type='vertical' />
+                    <Button type='link'  onClick={openNotification}><Icon type="mail" /></Button>
+                </span> : <div style={{ textAlign: 'center' }}>--</div>
+            }
+        }
+    ];
+
+    const handleSearch = (selectedKeys, confirm) => {
         confirm();
-        this.setState({ searchText: selectedKeys[0] });
+        setSearchText(selectedKeys[0]);
     };
 
-    handleReset = clearFilters => {
+    const handleReset = clearFilters => {
         clearFilters();
-        this.setState({ searchText: '' });
+        setSearchText(defaultSearchText);
     };
-    showDownload = (val) => {
-        this.setState({ download: val });
+
+    const showDownload = (val) => {
+        setDownload(val);
     }
-    openNotification = () => {
+
+    const openNotification = () => {
         notification.open({
             message: 'Mail Sent...',
             description:
@@ -115,74 +184,15 @@ class Job extends React.Component {
             icon: <Icon type="mail" style={{ color: '#108ee9' }} />,
         });
     };
-    render() {
-        const columns = [
-            {
-                title: 'ID',
-                dataIndex: 'key',
-                key: 'key',
-                width: '10%',
-                sorter: (a, b) => a.key - b.key
-            },
-            {
-                title: 'Department',
-                dataIndex: 'description',
-                key: 'description',
-                width: '15%',
-                ...this.getColumnSearchProps('description'),
-                sorter: (a, b) => a.name - b.name
-            },
-            {
-                title: 'Submitted By',
-                dataIndex: 'name',
-                key: 'name',
-                width: '15%',
-                ...this.getColumnSearchProps('name'),
-                sorter: (a, b) => a.name - b.name
-            },
-            {
-                title: 'Created On',
-                dataIndex: 'createdOn',
-                key: 'createdOn',
-                sorter: (a, b) => a.createdOn - b.createdOn
-            },
-            {
-                title: 'Status',
-                dataIndex: 'status',
-                key: 'status',
-                ...this.getColumnSearchProps('status'),
-                sorter: (a, b) => a.status - b.status
 
-            },
-            {
-                title: 'Completed(%)',
-                dataIndex: 'completed',
-                key: 'completed',
-                ...this.getColumnSearchProps('completed'),
-                sorter: (a, b) => a.completed - b.completed,
-                render: c => <Progress percent={c} status={c < 100 && "active"} />
-            },
-            {
-                title: 'Actions',
-                width: '20%',
-                render: c => {
-                    return c.status === 'Completed' ? <span>
-                        <Link to='results'><Button type='link'><Icon type="eye" /></Button> </Link>
-                        <Divider type='vertical' />
-                        <Button type='link' onClick={() => this.showDownload(true)}><Icon type="download" /></Button>
-                        <Divider type='vertical' />
-                        <Button type='link'  onClick={this.openNotification}><Icon type="mail" /></Button>
-                    </span> : <div style={{ textAlign: 'center' }}>--</div>
-                }
-            }
-        ];
-        return (
-            <>
-                <DownloadDialog open={this.state.download} close={this.showDownload} />
-                <Table columns={columns} dataSource={data} />
-            </>
-        );
-    }
+    return (
+        <>
+        <DownloadDialog open={download} close={showDownload} />
+        <Table columns={columns} dataSource={data} />
+        </>
+    );
 }
+
+
 
 export default Job;
