@@ -3,42 +3,7 @@ import { Table, Input, Button, Icon, Progress, Divider, notification } from 'ant
 import Highlighter from 'react-highlight-words';
 import { Link } from 'react-router-dom';
 import DownloadDialog from './downloadDialog';
-
-const data = [
-    {
-        key: '1',
-        description: 'Netherlands',
-        name: 'John Brown',
-        createdOn: '2019-11-1 11:10:10',
-        completed: 100,
-        status: 'Completed'
-    },
-    {
-        key: '2',
-        description: 'Amsterdam',
-        name: 'Joe Black',
-        createdOn: '2019-11-1 11:10:10',
-        completed: 70,
-        status: 'In Progress'
-    },
-    {
-        key: '3',
-        description: 'Hague',
-        name: 'Jim Green',
-        createdOn: '2019-11-11 11:10:10',
-        completed: 20,
-        status: 'In Progress'
-    },
-    {
-        key: '4',
-        description: 'Eindhoven',
-        name: 'Jim Red',
-        createdOn: '2019-11-19 11:10:10',
-        completed: 90,
-        status: 'In Progress'
-    },
-];
-
+import data from './../mocks/analysisMock';
 
 
 const defaultSearchText = '';
@@ -106,14 +71,14 @@ function Job(){
             title: 'ID',
             dataIndex: 'key',
             key: 'key',
-            width: '5%',
+            //width: '5%',
             sorter: (a, b) => a.key - b.key
         },
         {
             title: 'Department',
             dataIndex: 'description',
             key: 'description',
-            width: '15%',
+            //width: '15%',
             ...getColumnSearchProps('description'),
             sorter: (a, b) => a.key - b.key
         },
@@ -121,7 +86,7 @@ function Job(){
             title: 'Submitted By',
             dataIndex: 'name',
             key: 'name',
-            width: '15%',
+            //width: '15%',
             ...getColumnSearchProps('name'),
             sorter: (a, b) => a.key - b.key
         },
@@ -149,7 +114,7 @@ function Job(){
         },
         {
             title: 'Actions',
-            width: '15%',
+            //width: '15%',
             render: c => {
                 return c.status === 'Completed' ? <span>
                     <Link to='results'><Button type='link'><Icon type="eye" /></Button> </Link>
