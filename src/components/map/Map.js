@@ -215,8 +215,8 @@ class Map extends Component {
       });
       this.olmap.addInteraction(this.draw);
     } else {
-      this.olmap.removeInteraction(this.draw);
-      this.draw.removeEventListener('drawend');
+      this.olmap && this.olmap.removeInteraction(this.draw);
+      this.draw && this.draw.removeEventListener('drawend');
       this.draw = null;
     }
   }

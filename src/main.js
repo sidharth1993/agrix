@@ -10,11 +10,11 @@ import { fromLonLat } from 'ol/proj';
 function Main(props) {
     const [showDraw, toggleDraw] = useState(false);
     const [showUpload, toggleUploadModal] = useState(false);
-    const [logged, setLog] = useState(true);
+    const [logged, setLog] = useState(false);
     let view;
     const tamilNadu = fromLonLat([6, 52.5]);
     useEffect(() => {
-        if (logged)
+        if (logged && view)
             view.animate({
                 center: tamilNadu,
                 zoom: 7,
