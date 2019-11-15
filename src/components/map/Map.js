@@ -16,7 +16,7 @@ import Proj4 from 'proj4/lib';
 import { register } from 'ol/proj/proj4';
 import isEqual from 'lodash/isEqual';
 import geo from './static/clipped_poly.js';
-import { filterGeo, filterLulc } from './utils/filter';
+import { filterGeo, filterLulc, getNetherlands } from './utils/filter';
 import './styles/map.scss';
 import MapControl from './MapControls';
 import { Circle as CircleStyle } from 'ol/style';
@@ -77,12 +77,17 @@ class Map extends Component {
     register(Proj4);
     let vectorSource = new VectorSource();
     let lulcSource = new VectorSource();
+    let boundarySource = new VectorSource();
     let vectorLayer = new VectorLayer({
       source: vectorSource,
       style: f => this.styleFunction(f,1)
     });
     let lulcLayer = new VectorLayer({
-      source: vectorSource,
+      source: lulcSource,
+      style: f => this.styleFunction(f,3)
+    });
+    let boundaryLayer = new VectorLayer({
+      source: boundarySource,
       style: f => this.styleFunction(f,3)
     });
     this.drawSource = new VectorSource({ wrapX: false });
@@ -101,6 +106,7 @@ class Map extends Component {
         }),
         vectorLayer,
         lulcLayer,
+        boundaryLayer,
         drawVector
       ],
       controls: [
@@ -135,11 +141,12 @@ class Map extends Component {
       });
       this.olmap.getLayers().array_[1].setSource(vectorSource);
       this.olmap.getLayers().array_[2].setSource(lulcSource);
-      this.view.animate({
-        center: tamilNadu,
-        zoom: 9,
-        duration: 2000
+    }else if(this.props.logged && location.hash === '#/'){
+      let dutch = getNetherlands();
+      let vectorSource = new VectorSource({
+        features: (new GeoJSON({})).readFeatures(dutch)
       });
+      this.olmap.getLayers().array_[3].setSource(vectorSource);
     }
   };
 
@@ -154,6 +161,7 @@ class Map extends Component {
       let zoom = this.olmap.getView().getZoom();
       this.setState({ zoom });
     });
+
   }
   shouldComponentUpdate(nextProps, nextState) {
     let zoom = this.olmap.getView().getZoom();
@@ -192,15 +200,6 @@ class Map extends Component {
         crop.other = true;
     }
     this.updateLegends(crop);
-      if (logged && location.hash !== '#/results'){
-        setTimeout(() => {
-          me.view.animate({
-            center: tamilNadu,
-            zoom: 7,
-            duration: 2000
-          });
-        }, 1000);
-      }
   }
   toggleEdit = (edit) => {
     if (edit) {
@@ -222,6 +221,7 @@ class Map extends Component {
     }
   }
   render() {
+    this.props.sendView(this.view);
     this.updateMap();
     return (
       <>
