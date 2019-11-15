@@ -212,19 +212,22 @@ const MapControls = ({ editAction, submit }) => {
     selectedRowKeys,
     onChange: onSelectChange,
   };
-  const handleClose = () => {
-    setCurrent(0);
-    setOpenModal('')
+  const handleDone = () => {
     notification.success({
       message: 'Success',
       description:
         'Job successfully added to queue. You will receive a notification once it is completed.',
     });
+    handleClose();
+  }
+  const handleClose = () => {
+    setCurrent(0);
+    setOpenModal('');
     editAction(false);
     setEdit(false);
   }
   return (
-    <div className='zoom' style={{ position: 'absolute', right: '4%', bottom: '33%' }} >
+    <div className='zoom ol-control' style={{ position: 'absolute', right: '4%', bottom: '33%' }} >
       <button style={{ backgroundColor: `${edit ? '#004590' : ''}` }}><Icon type="edit" onClick={onEdit} /></button>{/* //#004590 */}
       <button disabled={!submit} onClick={() => setOpenModal('analysis')}><Icon type="check-circle" theme="filled" style={{ color: submit && '#52C41A' }} /></button>{/* //#004590 */}
       <Modal
@@ -328,7 +331,7 @@ const MapControls = ({ editAction, submit }) => {
             </Button>
           )}
           {current === steps.length - 1 && (
-            <Button type="primary" onClick={handleClose}>
+            <Button type="primary" onClick={handleDone}>
               Done
             </Button>
           )}

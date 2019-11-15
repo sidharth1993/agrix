@@ -31,7 +31,7 @@ const UserAction = ({ logged, setLogged }) => {
       </Menu.Item>
     </Menu>
   );
-  return [
+  return (
     logged ?
       <Dropdown overlay={menu} placement="bottomRight">
         <Avatar style={{ backgroundColor: '#87d068' }} icon="user" />
@@ -44,7 +44,7 @@ const UserAction = ({ logged, setLogged }) => {
       >
         <Avatar style={{ backgroundColor: '#f56a00' }} icon="login" />
       </Popover>
-  ];
+  );
 }
 
 export default UserAction;

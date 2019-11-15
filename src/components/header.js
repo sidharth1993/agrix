@@ -1,6 +1,6 @@
 import React from 'react';
 import { Layout } from 'antd';
-import { Icon, Button, Typography } from 'antd';
+import { Icon, Button, Typography, Tooltip } from 'antd';
 import { Link } from "react-router-dom";
 import Logo from '../images/logo.png';
 import UserAction from './UserAction';
@@ -23,7 +23,13 @@ const Head = ({toggleDraw, showDraw, setLog, logged}) => {
         { logged && <Button type="link" size='large'>
           <Icon type="bell" />
         </Button>}
+        {<Tooltip
+        placement="left"
+        title='Login'
+        visible={!logged}
+      >
         <UserAction logged={logged} setLogged={setLog}/>
+        </Tooltip>}
       </span>
     </Header>,
       <div style={{height:3, backgroundImage: `linear-gradient(to right, #A33582, #17468B)`}} key='1'></div>

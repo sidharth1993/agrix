@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter, Route, Switch } from "react-router-dom";
 import Header from './components/header';
 import Map from './components/map/Map';
+import DrawMap from './components/map/DrawMap';
 import Analysis from './components/analysis';
 import Draw from './components/draw';
 import UploadModal from './components/map/UploadModal';
@@ -12,18 +13,22 @@ function Main(props) {
     const [showUpload, toggleUploadModal] = useState(false);
     const [logged, setLog] = useState(false);
     let view;
-    const tamilNadu = fromLonLat([6, 52.5]);
+    /*
+    Netherland fromLonLat([6, 52.5]), 7, geojson;
+    tamilnadu = fromLonLat([78.6569, 11.1271]), 6.5, geojson;
+    */
+    const tamilNadu = fromLonLat([78.6569, 11.1271]);
     useEffect(() => {
         if (logged && view)
             view.animate({
                 center: tamilNadu,
-                zoom: 7,
+                zoom: 6.5,
                 duration: 2000
             })
         else if(!logged && view)
             view.animate({
-                center: tamilNadu,
-                zoom: .5,
+                center: [0,0],
+                zoom: 0,
                 duration: 2000
             })
     }, [logged, view, tamilNadu]);
@@ -38,7 +43,7 @@ function Main(props) {
                     <Analysis />
                 </Route>
                 <Route exact path="/">
-                    <Map mainType={1} subType={{
+                    <DrawMap mainType={1} subType={{
                         101: true,
                         102: true
                     }} logged={logged} sendView={saveView} />

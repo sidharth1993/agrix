@@ -8,7 +8,6 @@ function Login(props) {
     e.preventDefault();
     props.form.validateFields((err, values) => {
       if (!err) {
-        console.log('Received values of form: ', values);
         setTimeout(() => {
           props.setLogged(true);
         }, 300);

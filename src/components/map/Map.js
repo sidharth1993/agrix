@@ -16,8 +16,8 @@ import Proj4 from 'proj4/lib';
 import { register } from 'ol/proj/proj4';
 import isEqual from 'lodash/isEqual';
 import geo from './static/clipped_poly.js';
-import { filterGeo, filterLulc, getNetherlands } from './utils/filter';
-import './styles/map.scss';
+import { filterGeo, filterLulc, getTamilNadu } from './utils/filter';
+import 'ol/ol.css';
 import MapControl from './MapControls';
 import { Circle as CircleStyle } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
@@ -142,7 +142,7 @@ class Map extends Component {
       this.olmap.getLayers().array_[1].setSource(vectorSource);
       this.olmap.getLayers().array_[2].setSource(lulcSource);
     }else if(this.props.logged && location.hash === '#/'){
-      let dutch = getNetherlands();
+      let dutch = getTamilNadu();
       let vectorSource = new VectorSource({
         features: (new GeoJSON({})).readFeatures(dutch)
       });
