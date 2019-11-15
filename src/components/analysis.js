@@ -5,14 +5,14 @@ import windowDimensions  from 'react-window-dimensions';
 import Job  from  './job';
 const { Content } = Layout;
 
-function Analysis({height}) {
+function Analysis({width,height}) {
     return (
-        <Content style={{ padding: '10px 50px', backgroundColor:'#F0F2F5', height:`${height-67}px` }}>
+        <Content style={{ padding: '10px 35px', backgroundColor:'#F0F2F5', height:`${height-67}px` }}>
             <Breadcrumb>
                 <Breadcrumb.Item><Link to="/"><Icon type="home" size='large' /></Link></Breadcrumb.Item>
                 <Breadcrumb.Item>Analysis</Breadcrumb.Item>
             </Breadcrumb>
-            <div style={{ background: '#fff', padding: 24, minHeight: `${height-137}px`, marginTop:20 }}><Job/></div>
+            <div style={{ background: '#fff', padding:12, minHeight: `${height-137}px`, maxHeight: `${height-137}px`, overflowY: 'auto' , marginTop:20 ,maxWidth: `${width-37}px`, overflowX:'auto' }}><Job/></div>
         </Content>
     )
 }
