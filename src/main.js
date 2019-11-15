@@ -20,6 +20,12 @@ function Main(props) {
                 zoom: 7,
                 duration: 2000
             })
+        else if(!logged && view)
+            view.animate({
+                center: tamilNadu,
+                zoom: .5,
+                duration: 2000
+            })
     }, [logged, view, tamilNadu]);
     const saveView = (v) => view = v;
     return (
