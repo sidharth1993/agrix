@@ -92,8 +92,8 @@ class Map extends Component {
   select = new Select({
     condition: doubleClick
   })
-  fitToExtent = source => {
-    let extent = source.getFeatures()[0].getGeometry().getExtent();
+  fitToExtent = feature => {
+    let extent = feature.getGeometry().getExtent();
     this.olmap.getView().fit(extent, { duration: 2000 });
   }
   selectArea = (source, id) => {
@@ -116,6 +116,11 @@ class Map extends Component {
         layer = this.olmap.getLayers().array_[3];
       }
       layer.setSource(boundarySource);
+      setTimeout(() => {
+        if (level === 1){
+          this.fitToExtent(source.getFeatures().getArray()[0])
+        }
+      }, 1000);
     });
   }
   componentDidUpdate() {
@@ -133,13 +138,16 @@ class Map extends Component {
         });
         this.olmap.getLayers().array_[1].setSource(boundarySource);
         setTimeout(() => {
-          this.fitToExtent(this.olmap.getLayers().array_[1].getSource())
+          this.fitToExtent(this.olmap.getLayers().array_[1].getSource().getFeatures()[0])
           message.info('Hint: Double click to load districts!')
         }, 100);
         this.olmap.addInteraction(this.select);
         this.select.on('select', e => {
           try {
-            this.selectArea(e.target);
+            const id = e.selected[0].getProperties('values_').OBJECTID;
+            this.selectArea(e.target, id);
+            if(e.selected[0].values_.BLOCKS_)
+            this.fitToExtent(e.target.getFeatures().getArray()[0]);
           } catch (e) {
             console.log(e);
           }
@@ -150,13 +158,6 @@ class Map extends Component {
       this.olmap.removeInteraction(this.select);
       this.select.removeEventListener('select');
     }
-    // let boundarySource = new VectorSource({
-    //   url: `${domain}:${port}/api/location/geojson`,
-    //   format: new GeoJSON({
-    //     dataProjection: 'EPSG:4326',
-    //     featureProjection: 'EPSG:3857'
-    //   })
-    // });
   }
   clearLayers = () => {
     let layers = this.olmap.getLayers().array_;
@@ -172,9 +173,8 @@ class Map extends Component {
         type: 'Polygon'
       });
       this.draw.on('drawend', () => {
-        this.setState(prevState => {
-          prevState.showSubmit = true;
-          return prevState
+        this.setState({
+          showSubmit: true
         });
       });
       this.olmap.addInteraction(this.draw);
