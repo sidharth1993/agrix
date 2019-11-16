@@ -205,8 +205,8 @@ const MapControls = ({ editAction, submit, clearDraw, handleSubmit }) => {
     setCurrent(current - 1);
   }
   const onEdit = () => {
-    editAction(!edit);
-    setEdit(!edit);
+    editAction(true);
+    setEdit(true);
   }
   const rowSelection = {
     selectedRowKeys,
@@ -248,7 +248,7 @@ const MapControls = ({ editAction, submit, clearDraw, handleSubmit }) => {
     <>
       <div className='zoom ol-control' style={{ position: 'absolute', right: '4%', bottom: '33%' }} >
         <Tooltip placement="left" title='Draw'><button style={{ backgroundColor: `${edit ? '#004590' : ''}` }}><Icon type="edit" onClick={onEdit} /></button>{/* //#004590 */}</Tooltip>
-        <Tooltip placement="left" title='Submit'><button disabled={!submit} onClick={() => setOpenModal('analysis')}><Icon type="check-circle" theme="filled" style={{ color: submit && '#52C41A' }} /></button>{/* //#004590 */}</Tooltip>
+        <Tooltip placement="left" title='Submit'><button onClick={() => setOpenModal('analysis')}><Icon type="check-circle" theme="filled" style={{ color: submit && '#52C41A' }} /></button>{/* //#004590 */}</Tooltip>
         <Tooltip placement="left" title='Reset'><button onClick={clear}><Icon type="close-circle" theme="filled" style={{ color: submit && '#F5222D' }} /></button>{/* //#004590 */}</Tooltip>
       </div>
       <Modal

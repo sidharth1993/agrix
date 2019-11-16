@@ -15,7 +15,6 @@ function Login(props) {
           if (data.status) {
             setError('');
             props.setLogged(true);
-            props.updateLocation(data.data.location);
           } else
             setError(data.data);
         })

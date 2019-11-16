@@ -8,7 +8,7 @@ import UserAction from './UserAction';
 const { Text } = Typography;
 const { Header } = Layout;
 
-const Head = ({toggleDraw, showDraw, setLog, logged, updateLocation}) => {
+const Head = ({toggleDraw, showDraw, setLog, logged}) => {
   
   return [
     <Header style={{ backgroundColor: 'white' }} key='0'>
@@ -29,7 +29,7 @@ const Head = ({toggleDraw, showDraw, setLog, logged, updateLocation}) => {
         title='Login'
         visible={!logged}
       >
-        <UserAction logged={logged} setLogged={setLog} updateLocation={updateLocation}/>
+        <UserAction logged={logged} setLogged={setLog}/>
         </Tooltip>}
       </span>
     </Header>,

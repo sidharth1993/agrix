@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { HashRouter, Route, Switch } from "react-router-dom";
-import { fromLonLat } from 'ol/proj';
 import { message } from 'antd';
 import Header from './components/header';
 import Map from './components/map/Map';
@@ -18,15 +17,11 @@ message.config({
 function Main(props) {
     const [showDraw, toggleDraw] = useState(false);
     const [showUpload, toggleUploadModal] = useState(false);
-    const [location, setLocation] = useState({});
     const [logged, setLog] = useState(false);
 
-    const updateLocation = location => {
-        setLocation(location)
-    };
     return (
         <HashRouter>
-            <Header key='header' toggleDraw={toggleDraw} showDraw={showDraw} logged={logged} setLog={setLog} updateLocation={updateLocation}/>
+            <Header key='header' toggleDraw={toggleDraw} showDraw={showDraw} logged={logged} setLog={setLog}/>
             <Draw showDraw={showDraw} toggleDraw={toggleDraw} showUpload={toggleUploadModal} />
             {showUpload && <UploadModal open={showUpload} close={() => toggleUploadModal(false)} />}
             <Switch>

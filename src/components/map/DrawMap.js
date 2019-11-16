@@ -98,9 +98,12 @@ class Map extends Component {
   }
   selectArea = (source, id) => {
     const { level } = this.state;
+    let hide;
     let url = `${domain}:${port}/api/division?level=${this.state.level}`;
     if (level === 1)
       url += `&blockId=${id}`;
+    if (level === 0)
+      hide = message.loading('Loading Map', 0);
     axios.get(url).then(res => {
       let boundarySource = new VectorSource({
         features: (new GeoJSON({
@@ -112,16 +115,17 @@ class Map extends Component {
       if (level === 0) {
         layer = this.olmap.getLayers().array_[1]
         this.setState({ level: 1 });
+        hide();
       } else if (level === 1) {
         layer = this.olmap.getLayers().array_[3];
       }
       layer.setSource(boundarySource);
       setTimeout(() => {
-        if (level === 1){
+        if (level === 1) {
           this.fitToExtent(source.getFeatures().getArray()[0])
         }
       }, 1000);
-    });
+    }, res => { if(level === 0)hide(); });
   }
   componentDidUpdate() {
     if (this.props.logged && this.state.level === -1) {
@@ -146,8 +150,8 @@ class Map extends Component {
           try {
             const id = e.selected[0].getProperties('values_').OBJECTID;
             this.selectArea(e.target, id);
-            if(e.selected[0].values_.BLOCKS_)
-            this.fitToExtent(e.target.getFeatures().getArray()[0]);
+            if (e.selected[0].values_.BLOCKS_)
+              this.fitToExtent(e.target.getFeatures().getArray()[0]);
           } catch (e) {
             console.log(e);
           }
@@ -199,7 +203,6 @@ class Map extends Component {
       <>
         <div id="draw-map" style={{ width: "100%", height: `${this.props.height - 67}px` }}></div>
         {this.props.logged && <MapControl
-          key='ctrl'
           editAction={this.toggleEdit}
           clearDraw={this.clearDraw}
           handleSubmit={this.handleSubmit}

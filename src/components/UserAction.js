@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import Login from './Login';
 
 
-const UserAction = ({ logged, setLogged, updateLocation }) => {
+const UserAction = ({ logged, setLogged }) => {
   const [beforeLog, AfterLog] = useState({
     visible: false,
   });
@@ -41,7 +41,7 @@ const UserAction = ({ logged, setLogged, updateLocation }) => {
         <Avatar style={{ backgroundColor: '#87d068' }} icon="user" />
       </Dropdown> : <Popover
         placement="bottomRight"
-        content={<Login hide={hide} setLogged={setLogged} updateLocation={updateLocation}/>}
+        content={<Login hide={hide} setLogged={setLogged}/>}
         trigger="click"
         visible={beforeLog.visible}
         onVisibleChange={handleVisibleChange}
