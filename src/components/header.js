@@ -8,7 +8,7 @@ import UserAction from './UserAction';
 const { Text } = Typography;
 const { Header } = Layout;
 
-const Head = ({toggleDraw, showDraw, setLog, logged}) => {
+const Head = ({toggleDraw, showDraw, setLog, logged, updateLocation}) => {
   
   return [
     <Header style={{ backgroundColor: 'white' }} key='0'>
@@ -17,6 +17,7 @@ const Head = ({toggleDraw, showDraw, setLog, logged}) => {
       </Button>}
       <Link to='/'>
       <img src={Logo} height='32' alt='logo' />
+      {/* <img border="0" height="55" hspace="10" src="/brand/1122582/site_oneexperian/brand/1logo.jpg"/> */}
       </Link>
       <Text strong> | Agri-X</Text>
       <span style={{ float: 'right' }}>
@@ -28,7 +29,7 @@ const Head = ({toggleDraw, showDraw, setLog, logged}) => {
         title='Login'
         visible={!logged}
       >
-        <UserAction logged={logged} setLogged={setLog}/>
+        <UserAction logged={logged} setLogged={setLog} updateLocation={updateLocation}/>
         </Tooltip>}
       </span>
     </Header>,

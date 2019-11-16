@@ -1,5 +1,5 @@
 import React , { useState } from 'react';
-import { Table, Input, Button, Icon, Progress, Divider, notification } from 'antd';
+import { Table, Input, Button, Icon, Progress, Divider, notification, Modal } from 'antd';
 import Highlighter from 'react-highlight-words';
 import { Link } from 'react-router-dom';
 import DownloadDialog from './downloadDialog';
@@ -8,6 +8,8 @@ import data from './../mocks/analysisMock';
 
 const defaultSearchText = '';
 const defaultDownload = false;
+function compareByAlph (a, b) { if (a > b) { return -1; } if (a < b) { return 1; } return 0; };
+const { confirm } = Modal;
 
 function Job(){
     const [searchText,setSearchText] = useState(defaultSearchText);
@@ -80,7 +82,7 @@ function Job(){
             key: 'description',
             //width: '15%',
             ...getColumnSearchProps('description'),
-            sorter: (a, b) => a.key - b.key
+            sorter: (a, b) => compareByAlph(a.description, b.description)
         },
         {
             title: 'Submitted By',
@@ -88,20 +90,20 @@ function Job(){
             key: 'name',
             //width: '15%',
             ...getColumnSearchProps('name'),
-            sorter: (a, b) => a.key - b.key
+            sorter: (a, b) => compareByAlph(a.name, b.name)
         },
         {
             title: 'Created On',
             dataIndex: 'createdOn',
             key: 'createdOn',
-            sorter: (a, b) => a.key - b.key
+            sorter: (a, b) => compareByAlph(a.createdOn, b.createdOn)
         },
         {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
             ...getColumnSearchProps('status'),
-            sorter: (a, b) => a.key - b.key
+            sorter: (a, b) => compareByAlph(a.status, b.status)
     
         },
         {
@@ -109,7 +111,7 @@ function Job(){
             dataIndex: 'completed',
             key: 'completed',
             ...getColumnSearchProps('completed'),
-            sorter: (a, b) => a.completed - b.completed,
+            sorter: (a, b) => compareByAlph(a.completed, b.completed),
             render: c => <Progress percent={c} status={(c < 100)?"active":"success"} />
         },
         {
@@ -142,12 +144,20 @@ function Job(){
     }
 
     const openNotification = () => {
-        notification.open({
-            message: 'Mail Sent...',
-            description:
-                'A mail has been sent to your registered e-mail id. You may click on the link to view the details.',
-            icon: <Icon type="mail" style={{ color: '#108ee9' }} />,
-        });
+        confirm({
+            title: 'Confirm',
+            content: 'Do you wish to send the details to your registered e-mail id?',
+            okText: 'Yes',
+            cancelText: 'No',
+            onOk() {
+              notification.open({
+                  message: 'Mail Sent...',
+                  description:
+                      'A mail has been sent to your registered e-mail id. You may click on the link to view the details.',
+                  icon: <Icon type="mail" style={{ color: '#108ee9' }} />,
+              });
+            }
+          });
     };
 
     return (

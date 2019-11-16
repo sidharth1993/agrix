@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Icon, Modal, Steps, Button, Divider, Result, Table, Form, Select, DatePicker, notification, Checkbox } from 'antd';
+import { Icon, Modal, Steps, Button, Divider, Result, Table, Form, Select, DatePicker, notification, Checkbox, Tooltip } from 'antd';
 import propTypes from "prop-types";
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -18,7 +18,7 @@ const plainOptions = ['Crop Type', 'Date of Sowing', 'Crop yield', 'Crop profile
 const defaultCheckedList = ['Crop Type', 'Date of Sowing'];
 const notifications = ['Email', 'Push Notification', 'Whatsapp'];
 const defaultNotifications = ['Email'];
-
+const { confirm } = Modal
 const blocks = [
   {
     no: '1',
@@ -163,7 +163,7 @@ const stepStyle = {
   minHeight: 375,
   textAlign: 'center'
 }
-const MapControls = ({ editAction, submit }) => {
+const MapControls = ({ editAction, submit, clearDraw, handleSubmit }) => {
   const [edit, setEdit] = useState(false);
   const [openModal, setOpenModal] = useState('');
   const [current, setCurrent] = useState(0);
@@ -224,12 +224,33 @@ const MapControls = ({ editAction, submit }) => {
     setCurrent(0);
     setOpenModal('');
     editAction(false);
+    handleSubmit(false);
+    clearDraw();
     setEdit(false);
   }
+  const clear = () => {
+    confirm({
+      title: 'Reset',
+      content: 'Are you sure to clear the selection?',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk() {
+        setOpenModal('');
+        setEdit(false);
+        editAction(false);
+        clearDraw();
+        handleSubmit(false);
+      },
+    });
+  }
   return (
-    <div className='zoom ol-control' style={{ position: 'absolute', right: '4%', bottom: '33%' }} >
-      <button style={{ backgroundColor: `${edit ? '#004590' : ''}` }}><Icon type="edit" onClick={onEdit} /></button>{/* //#004590 */}
-      <button disabled={!submit} onClick={() => setOpenModal('analysis')}><Icon type="check-circle" theme="filled" style={{ color: submit && '#52C41A' }} /></button>{/* //#004590 */}
+    <>
+      <div className='zoom ol-control' style={{ position: 'absolute', right: '4%', bottom: '33%' }} >
+        <Tooltip placement="left" title='Draw'><button style={{ backgroundColor: `${edit ? '#004590' : ''}` }}><Icon type="edit" onClick={onEdit} /></button>{/* //#004590 */}</Tooltip>
+        <Tooltip placement="left" title='Submit'><button disabled={!submit} onClick={() => setOpenModal('analysis')}><Icon type="check-circle" theme="filled" style={{ color: submit && '#52C41A' }} /></button>{/* //#004590 */}</Tooltip>
+        <Tooltip placement="left" title='Reset'><button onClick={clear}><Icon type="close-circle" theme="filled" style={{ color: submit && '#F5222D' }} /></button>{/* //#004590 */}</Tooltip>
+      </div>
       <Modal
         title="Analyse"
         visible={openModal === 'analysis'}
@@ -247,7 +268,7 @@ const MapControls = ({ editAction, submit }) => {
           {current === 0 && <Result
             status="warning"
             title="The below listed blocks will not be accessible. Do you wish to continue?"
-            style={{height:180, padding:10}}
+            style={{ height: 180, padding: 10 }}
           />}
           {current === 0 && <Table
             columns={columns}
@@ -342,7 +363,7 @@ const MapControls = ({ editAction, submit }) => {
           )}
         </div>
       </Modal>
-    </div>
+    </>
   );
 }
 MapControls.propTypes = {

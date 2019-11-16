@@ -5,27 +5,29 @@ import OlLayerTile from "ol/layer/Tile";
 import GeoJSON from 'ol/format/GeoJSON';
 import OlSourceOSM from "ol/source/OSM";
 import Zoom from 'ol/control/Zoom';
-import {defaults} from 'ol/interaction'
+import { defaults } from 'ol/interaction'
 import windowDimensions from 'react-window-dimensions';
 import Draw from 'ol/interaction/Draw';
-import {doubleClick} from 'ol/events/condition';
+import { doubleClick } from 'ol/events/condition';
 import Select from 'ol/interaction/Select';
 import PropType from 'prop-types';
+import axios from 'axios';
 import { Vector as VectorLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
-import isEqual from 'lodash/isEqual';
-import { getTamilNadu } from './utils/filter';
 import './styles/map.scss';
 import MapControl from './MapControls';
 import 'ol/ol.css';
+import { message } from 'antd';
 
 const center = [0, 0];
+const { REACT_APP_DOMAIN: domain, REACT_APP_LOGIN_PORT: port } = process.env;
 class Map extends Component {
   constructor(props) {
     super(props);
     this.state = {
       zoom: 1,
       showSubmit: false,
+      level: -1
     };
     this.draw = null;
   }
@@ -33,6 +35,10 @@ class Map extends Component {
     let boundarySource = new VectorSource();
     let boundaryLayer = new VectorLayer({
       source: boundarySource
+    });
+    let level1Source = new VectorSource();
+    let level1Layer = new VectorLayer({
+      source: level1Source
     });
     this.drawSource = new VectorSource({ wrapX: false });
     var drawVector = new VectorLayer({
@@ -53,7 +59,8 @@ class Map extends Component {
       layers: [
         raster,
         boundaryLayer,
-        drawVector
+        drawVector,
+        level1Layer
       ],
       controls: [
         new Zoom({
@@ -78,40 +85,80 @@ class Map extends Component {
     });
   }
   shouldComponentUpdate(nextProps, nextState) {
-    let zoom = this.olmap.getView().getZoom();
-    if (zoom === nextState.zoom &&
-      this.props.mainType === nextProps.mainType &&
-      this.props.logged === nextProps.logged &&
-      isEqual(this.props.subType, nextProps.mainType))
+    if (this.props.logged === nextProps.logged)
       return false;
     return true;
   }
   select = new Select({
     condition: doubleClick
   })
-  componentDidUpdate() {
-    if (this.props.logged) {
-      let tamizh = getTamilNadu();
+  fitToExtent = source => {
+    let extent = source.getFeatures()[0].getGeometry().getExtent();
+    this.olmap.getView().fit(extent, { duration: 2000 });
+  }
+  selectArea = (source, id) => {
+    const { level } = this.state;
+    let url = `${domain}:${port}/api/division?level=${this.state.level}`;
+    if (level === 1)
+      url += `&blockId=${id}`;
+    axios.get(url).then(res => {
       let boundarySource = new VectorSource({
         features: (new GeoJSON({
           dataProjection: 'EPSG:4326',
           featureProjection: 'EPSG:3857'
-        })).readFeatures(tamizh)
+        })).readFeatures(res.data.data)
       });
-      this.olmap.getLayers().array_[1].setSource(boundarySource);
-      this.olmap.addInteraction(this.select);
-      this.select.on('select', e => {
-        
-        var extent = e.target.getFeatures().getArray()[0].getGeometry().getExtent();
-        this.olmap.getView().fit(extent,{duration:2000});//use easing for animation
+      let layer;
+      if (level === 0) {
+        layer = this.olmap.getLayers().array_[1]
+        this.setState({ level: 1 });
+      } else if (level === 1) {
+        layer = this.olmap.getLayers().array_[3];
+      }
+      layer.setSource(boundarySource);
+    });
+  }
+  componentDidUpdate() {
+    if (this.props.logged && this.state.level === -1) {
+      axios.get(`${domain}:${port}/api/location/geojson`).then(res => {
+        if (!res.data.status) {
+          return;
+        }
+        this.setState({ level: 0 });
+        let boundarySource = new VectorSource({
+          features: (new GeoJSON({
+            dataProjection: 'EPSG:4326',
+            featureProjection: 'EPSG:3857'
+          })).readFeatures(res.data.data)
+        });
+        this.olmap.getLayers().array_[1].setSource(boundarySource);
+        setTimeout(() => {
+          this.fitToExtent(this.olmap.getLayers().array_[1].getSource())
+          message.info('Hint: Double click to load districts!')
+        }, 100);
+        this.olmap.addInteraction(this.select);
+        this.select.on('select', e => {
+          try {
+            this.selectArea(e.target);
+          } catch (e) {
+            console.log(e);
+          }
+        });
       });
     } else {
       this.clearLayers();
       this.olmap.removeInteraction(this.select);
       this.select.removeEventListener('select');
     }
+    // let boundarySource = new VectorSource({
+    //   url: `${domain}:${port}/api/location/geojson`,
+    //   format: new GeoJSON({
+    //     dataProjection: 'EPSG:4326',
+    //     featureProjection: 'EPSG:3857'
+    //   })
+    // });
   }
-  clearLayers = () =>{
+  clearLayers = () => {
     let layers = this.olmap.getLayers().array_;
     layers.forEach(layer => {
       layer.getSource().clear();
@@ -119,6 +166,7 @@ class Map extends Component {
   }
   toggleEdit = (edit) => {
     if (edit) {
+      this.olmap.getLayers().array_[2].getSource().clear();
       this.draw = new Draw({
         source: this.drawSource,
         type: 'Polygon'
@@ -136,13 +184,26 @@ class Map extends Component {
       this.draw = null;
     }
   }
+  clearDraw = () => {
+    this.olmap && this.draw && this.olmap.removeInteraction(this.draw);
+    this.draw && this.draw.removeEventListener('drawend');
+    this.draw = null;
+    this.olmap.getLayers().array_[2].getSource().clear();
+  }
+  handleSubmit = (showSubmit) => {
+    this.setState({ showSubmit });
+  }
   render() {
-    this.props.sendView(this.view);
     this.updateMap();
     return (
       <>
         <div id="draw-map" style={{ width: "100%", height: `${this.props.height - 67}px` }}></div>
-        {this.props.logged && <MapControl key='ctrl' editAction={this.toggleEdit} submit={this.state.showSubmit} />}
+        {this.props.logged && <MapControl
+          key='ctrl'
+          editAction={this.toggleEdit}
+          clearDraw={this.clearDraw}
+          handleSubmit={this.handleSubmit}
+          submit={this.state.showSubmit} />}
       </>
     )
   }

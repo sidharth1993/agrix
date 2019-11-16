@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Menu, Dropdown, Avatar, Popover } from 'antd';
+import axios from 'axios';
 import { Link } from "react-router-dom";
 import Login from './Login';
 
 
-const UserAction = ({ logged, setLogged }) => {
+const UserAction = ({ logged, setLogged, updateLocation }) => {
   const [beforeLog, AfterLog] = useState({
     visible: false,
   });
@@ -19,7 +20,10 @@ const UserAction = ({ logged, setLogged }) => {
     AfterLog({ visible: visible });
   };
   const handleClick = e => {
-    setLogged(false);
+    let {REACT_APP_DOMAIN: domain, REACT_APP_LOGIN_PORT : port} = process.env;
+    axios.post(`${domain}:${port}/api/user/logout`).then(() =>{
+      setLogged(false);
+    });
   }
   const menu = (
     <Menu>
@@ -37,7 +41,7 @@ const UserAction = ({ logged, setLogged }) => {
         <Avatar style={{ backgroundColor: '#87d068' }} icon="user" />
       </Dropdown> : <Popover
         placement="bottomRight"
-        content={<Login hide={hide} setLogged={setLogged} />}
+        content={<Login hide={hide} setLogged={setLogged} updateLocation={updateLocation}/>}
         trigger="click"
         visible={beforeLog.visible}
         onVisibleChange={handleVisibleChange}
