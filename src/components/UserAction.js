@@ -21,7 +21,7 @@ const UserAction = ({ logged, setLogged }) => {
   };
   const handleClick = e => {
     let {REACT_APP_DOMAIN: domain, REACT_APP_LOGIN_PORT : port} = process.env;
-    axios.post(`${domain}:${port}/api/user/logout`).then(() =>{
+    axios.post('https://agrix-api.herokuapp.com/server/api/user/logout').then(() =>{
       setLogged(false);
     });
   }

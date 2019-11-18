@@ -32,10 +32,7 @@ function Main(props) {
                     <DrawMap logged={logged} />
                 </Route>
                 <Route exact path="/results">
-                    <Map mainType={1} subType={{
-                        101: true,
-                        102: true
-                    }} logged={logged} />
+                    <Map logged={true} />
                 </Route>
             </Switch>
         </HashRouter>

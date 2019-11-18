@@ -6,10 +6,11 @@ import GeoJSON from 'ol/format/GeoJSON';
 import OlSourceOSM from "ol/source/OSM";
 import Zoom from 'ol/control/Zoom';
 import { defaults } from 'ol/interaction'
-import windowDimensions from 'react-window-dimensions';
 import Draw from 'ol/interaction/Draw';
 import { doubleClick } from 'ol/events/condition';
 import Select from 'ol/interaction/Select';
+import { Fill, Stroke, Style, Text} from 'ol/style';
+import windowDimensions from 'react-window-dimensions';
 import PropType from 'prop-types';
 import axios from 'axios';
 import { Vector as VectorLayer } from 'ol/layer';
@@ -18,9 +19,34 @@ import './styles/map.scss';
 import MapControl from './MapControls';
 import 'ol/ol.css';
 import { message } from 'antd';
+import './Map.css';
 
 const center = [0, 0];
 const { REACT_APP_DOMAIN: domain, REACT_APP_LOGIN_PORT: port } = process.env;
+const styleBorder = feature => new Style({
+  stroke: new Stroke({
+    color: '#0099FF',
+    width: 1
+  }),
+  fill: new Fill({
+    color: 'rgba(0, 0, 0, 0)'
+  })
+});
+const styleDt = feature => new Style({
+  stroke: new Stroke({
+    color: '#A03582',
+    width: 2
+  }),
+  fill: new Fill({
+    color: 'rgba(255, 255, 0, 0.1)'
+  }),
+  text: new Text({
+    text: feature.values_.BLKNAME,
+    fill: new Fill({
+      color: '#f56a00'
+    })
+  })
+});
 class Map extends Component {
   constructor(props) {
     super(props);
@@ -34,11 +60,13 @@ class Map extends Component {
   configureMap = () => {
     let boundarySource = new VectorSource();
     let boundaryLayer = new VectorLayer({
-      source: boundarySource
+      source: boundarySource,
+      style: f => styleBorder(f)
     });
     let level1Source = new VectorSource();
     let level1Layer = new VectorLayer({
-      source: level1Source
+      source: level1Source,
+      style: f => styleDt(f)
     });
     this.drawSource = new VectorSource({ wrapX: false });
     var drawVector = new VectorLayer({
@@ -84,7 +112,7 @@ class Map extends Component {
       this.setState({ zoom });
     });
   }
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps) {
     if (this.props.logged === nextProps.logged)
       return false;
     return true;
@@ -98,38 +126,41 @@ class Map extends Component {
   }
   selectArea = (source, id) => {
     const { level } = this.state;
-    let hide;
-    let url = `${domain}:${port}/api/division?level=${this.state.level}`;
+    let url = `https://agrix-api.herokuapp.com/server/api/division?level=${this.state.level}`;
     if (level === 1)
       url += `&blockId=${id}`;
-    if (level === 0)
-      hide = message.loading('Loading Map', 0);
-    axios.get(url).then(res => {
-      let boundarySource = new VectorSource({
-        features: (new GeoJSON({
-          dataProjection: 'EPSG:4326',
-          featureProjection: 'EPSG:3857'
-        })).readFeatures(res.data.data)
-      });
-      let layer;
-      if (level === 0) {
-        layer = this.olmap.getLayers().array_[1]
-        this.setState({ level: 1 });
-        hide();
-      } else if (level === 1) {
-        layer = this.olmap.getLayers().array_[3];
-      }
-      layer.setSource(boundarySource);
-      setTimeout(() => {
-        if (level === 1) {
-          this.fitToExtent(source.getFeatures().getArray()[0])
+    if (level === 0 || (level === 1 && id)) {
+      let hide = message.loading('Loading Map', 0);
+      axios.get(url).then(res => {
+        if (!res.data.status)
+          return;
+        let boundarySource = new VectorSource({
+          features: (new GeoJSON({
+            dataProjection: 'EPSG:4326',
+            featureProjection: 'EPSG:3857'
+          })).readFeatures(res.data.data)
+        });
+        let layer;
+        if (level === 0) {
+          layer = this.olmap.getLayers().array_[1]
+          this.setState({ level: 1 });
+        } else if (level === 1) {
+          layer = this.olmap.getLayers().array_[3];
         }
-      }, 1000);
-    }, res => { if(level === 0)hide(); });
+        layer.setSource(boundarySource);
+        setTimeout(() => {
+          if (level === 1) {
+            this.fitToExtent(source.getFeatures().getArray()[0])
+          }
+        }, 500);
+        hide();
+      }, res => { if (level === 0) hide(); });
+    }
   }
   componentDidUpdate() {
     if (this.props.logged && this.state.level === -1) {
-      axios.get(`${domain}:${port}/api/location/geojson`).then(res => {
+      let hide = message.loading('Loading Map', 0);
+      axios.get(`https://agrix-api.herokuapp.com/server/api/location/geojson`).then(res => {
         if (!res.data.status) {
           return;
         }
@@ -143,8 +174,9 @@ class Map extends Component {
         this.olmap.getLayers().array_[1].setSource(boundarySource);
         setTimeout(() => {
           this.fitToExtent(this.olmap.getLayers().array_[1].getSource().getFeatures()[0])
+          hide();
           message.info('Hint: Double click to load districts!')
-        }, 100);
+        }, 1000);
         this.olmap.addInteraction(this.select);
         this.select.on('select', e => {
           try {
@@ -206,7 +238,7 @@ class Map extends Component {
           editAction={this.toggleEdit}
           clearDraw={this.clearDraw}
           handleSubmit={this.handleSubmit}
-          submit={this.state.showSubmit} />}
+          submit={this.state.showSubmit}/>}
       </>
     )
   }

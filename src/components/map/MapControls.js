@@ -1,9 +1,68 @@
-import React, { useState } from "react";
-import { Icon, Modal, Steps, Button, Divider, Result, Table, Form, Select, DatePicker, notification, Checkbox, Tooltip } from 'antd';
+import React, { useState, useEffect } from "react";
+import { Icon, Modal, Steps, Button, Divider, Result, Table, Form, Select, DatePicker, notification, Checkbox, Tooltip, Typography, Row, Col } from 'antd';
 import propTypes from "prop-types";
+import ApexCharts from 'apexcharts';
+
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 const CheckboxGroup = Checkbox.Group;
+const { Title } = Typography;
+const pieOption = {
+  chart: {
+    type: 'pie'
+  },
+  series: [324947.05, 718969.0104, 703248.9567, 102469.5138, 100839.6755,
+    96475.91474, 90429.74025, 87590.66701, 76286.94947, 76076.64775, 616657.2229],
+  chartOptions: {
+    labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
+  },
+  legend: {
+    show: false
+  },
+  colors: ['#800080', '#FF0000', '#FF00FF', '#000080', '#0000FF', '#008000', '#00FF00', '#ffa500', '#654321', '#d3d3d3', '#FF8C00']
+}
+const rangeOption = {
+  chart: {
+    type: 'rangeBar'
+  },
+  series: [{
+    data: [{
+      x: '1',
+      y: [0, 324947.05]
+    }, {
+      x: '2',
+      y: [0, 718969.0104]
+    }, {
+      x: '3',
+      y: [0, 703248.9567]
+    }, {
+      x: '4',
+      y: [0, 102469.5138]
+    }, {
+      x: '5',
+      y: [0, 100839.6755]
+    }, {
+      x: '6',
+      y: [0, 96475.91474]
+    }, {
+      x: '7',
+      y: [0, 90429.74025]
+    }, {
+      x: '8',
+      y: [0, 87590.66701]
+    }, {
+      x: '9',
+      y: [0, 76286.94947]
+    }, {
+      x: '10',
+      y: [0, 76076.64775]
+    }, {
+      x: '11',
+      y: [0, 616657.2229]
+    }
+    ]
+  }]
+}
 const data = [
   {
     no: '1',
@@ -11,7 +70,23 @@ const data = [
     perimeter: '12131424121',
     blockId: 2,
     blocks: 1,
-    blockName: 'XSW'
+    blockName: 'Karaikudi'
+  },
+  {
+    no: '2',
+    area: '95580512',
+    perimeter: '12131424121',
+    blockId: 2,
+    blocks: 1,
+    blockName: 'Orathanadu'
+  },
+  {
+    no: '3',
+    area: '5580512',
+    perimeter: '12131424121',
+    blockId: 2,
+    blocks: 1,
+    blockName: 'Manapparai'
   }
 ];
 const plainOptions = ['Crop Type', 'Date of Sowing', 'Crop yield', 'Crop profile'];
@@ -26,7 +101,7 @@ const blocks = [
     perimeter: '12131424121',
     blockId: 21,
     blocks: 4,
-    blockName: 'ABC'
+    blockName: 'Viralimalai'
   },
   {
     no: '2',
@@ -34,14 +109,14 @@ const blocks = [
     perimeter: '12231424121',
     blockId: 22,
     blocks: 3,
-    blockName: 'BDSG'
+    blockName: 'Keeranur'
   }, {
     no: '3',
     area: '3795580512',
     perimeter: '121424121',
     blockId: 23,
     blocks: 11,
-    blockName: 'TYEJW'
+    blockName: 'Buppur'
   },
   {
     no: '4',
@@ -49,7 +124,7 @@ const blocks = [
     perimeter: '424121',
     blockId: 24,
     blocks: 19,
-    blockName: 'JSJS'
+    blockName: 'Ponnamaravathi'
   },
   {
     no: '5',
@@ -57,7 +132,7 @@ const blocks = [
     perimeter: '831424121',
     blockId: 25,
     blocks: 13,
-    blockName: 'YEUW'
+    blockName: 'Arimalam'
   },
   {
     no: '6',
@@ -65,7 +140,7 @@ const blocks = [
     perimeter: '43131424121',
     blockId: 26,
     blocks: 31,
-    blockName: 'KWCXJ'
+    blockName: 'Reserved Forest'
   },
   {
     no: '7',
@@ -73,7 +148,7 @@ const blocks = [
     perimeter: '631424121',
     blockId: 27,
     blocks: 21,
-    blockName: 'PWOIE'
+    blockName: 'Aranthangi'
   },
   {
     no: '8',
@@ -81,7 +156,7 @@ const blocks = [
     perimeter: '1221',
     blockId: 28,
     blocks: 41,
-    blockName: 'DNDS'
+    blockName: 'Alangudi'
   },
   {
     no: '9',
@@ -89,31 +164,23 @@ const blocks = [
     perimeter: '424121',
     blockId: 29,
     blocks: 4,
-    blockName: 'WYTWYW'
+    blockName: 'Pudhukottai'
   },
   {
     no: '10',
-    area: '21480512',
-    perimeter: '904121',
-    blockId: 30,
-    blocks: 2,
-    blockName: 'HSJS'
+    area: '780512',
+    perimeter: '424121',
+    blockId: 99,
+    blocks: 4,
+    blockName: 'Other districts'
   },
-  {
-    no: '11',
-    area: '6720512',
-    perimeter: '854121',
-    blockId: 31,
-    blocks: 13,
-    blockName: 'TETUW'
-  }
 ];
 const columns = [
   {
     title: 'No',
     dataIndex: 'no',
     key: 'no',
-    width: '5%'
+    width: '7%'
   },
   {
     title: 'Area',
@@ -130,7 +197,8 @@ const columns = [
   {
     title: 'Blocks',
     dataIndex: 'blocks',
-    key: 'blocks'
+    key: 'blocks',
+    width: '10%'
   },
   {
     title: 'Block Name',
@@ -163,7 +231,7 @@ const stepStyle = {
   minHeight: 375,
   textAlign: 'center'
 }
-const MapControls = ({ editAction, submit, clearDraw, handleSubmit }) => {
+const MapControls = ({ editAction, submit, clearDraw, handleSubmit, draw }) => {
   const [edit, setEdit] = useState(false);
   const [openModal, setOpenModal] = useState('');
   const [current, setCurrent] = useState(0);
@@ -174,7 +242,10 @@ const MapControls = ({ editAction, submit, clearDraw, handleSubmit }) => {
   const [checkedNList, setCheckedNList] = useState(defaultNotifications);
   const [indeterminateN, setIndeterminateN] = useState(true);
   const [checkAllN, setCheckAllN] = useState(false);
-
+  const [stats, showStats] = useState(false);
+  const onStats = () => {
+    showStats(!stats);
+  }
   const onChange = checkedList => {
     setCheckedList(checkedList);
     setIndeterminate(!!checkedList.length && checkedList.length < plainOptions.length);
@@ -244,13 +315,42 @@ const MapControls = ({ editAction, submit, clearDraw, handleSubmit }) => {
       },
     });
   }
+  useEffect(() => {
+    setTimeout(() => {
+      const rangeBar = new ApexCharts(document.getElementById("chart"), rangeOption);
+      rangeBar.render();
+      const pieBar = new ApexCharts(document.getElementById("pie"), pieOption);
+      pieBar.render();
+    }, 1000);
+  }, [stats])
   return (
     <>
-      <div className='zoom ol-control' style={{ position: 'absolute', right: '4%', bottom: '33%' }} >
-        <Tooltip placement="left" title='Draw'><button style={{ backgroundColor: `${edit ? '#004590' : ''}` }}><Icon type="edit" onClick={onEdit} /></button>{/* //#004590 */}</Tooltip>
+      {!draw && <div className='zoom ol-control' style={{ position: 'absolute', right: '4%', bottom: '33%' }} >
+        <Tooltip placement="left" title='Draw'><button onClick={onEdit} style={{ backgroundColor: `${edit ? '#004590' : ''}` }}><Icon type="edit" /></button>{/* //#004590 */}</Tooltip>
         <Tooltip placement="left" title='Submit'><button onClick={() => setOpenModal('analysis')}><Icon type="check-circle" theme="filled" style={{ color: submit && '#52C41A' }} /></button>{/* //#004590 */}</Tooltip>
         <Tooltip placement="left" title='Reset'><button onClick={clear}><Icon type="close-circle" theme="filled" style={{ color: submit && '#F5222D' }} /></button>{/* //#004590 */}</Tooltip>
-      </div>
+      </div>}
+      {draw && <div className='zoom ol-control' style={{ position: 'absolute', right: '4%', bottom: '33%' }} >
+        <Tooltip placement="left" title='Statistics'><button style={{ backgroundColor: `${edit ? '#004590' : ''}` }} onClick={onStats}><Icon type="area-chart" /></button>{/* //#004590 */}</Tooltip>
+      </div>}
+      <Modal
+        title="Statistics"
+        visible={stats}
+        footer={null}
+        centered
+        width='80%'
+      >
+        <div style={{ height: 200 }}>
+          <Row>
+            <Col span={6}>
+              <div id="chart"></div>
+            </Col>
+            <Col span={6}>
+              <div id='pie'></div>
+            </Col>
+          </Row>
+        </div>
+      </Modal>
       <Modal
         title="Analyse"
         visible={openModal === 'analysis'}
@@ -268,15 +368,14 @@ const MapControls = ({ editAction, submit, clearDraw, handleSubmit }) => {
           {current === 0 && <Result
             status="warning"
             title="The below listed blocks will not be accessible. Do you wish to continue?"
-            style={{ height: 180, padding: 10 }}
+            style={{ height: 110, padding: 10 }}
           />}
-          {current === 0 && <Table
+          {current === 0 && <div style={{ height: 270, overflowY: 'auto' }}><Table
             columns={columns}
             dataSource={data}
             bordered
             pagination={false}
-            title={() => 'Ignored Blocks'}
-          />}
+          /></div>}
           {
             current === 1 && <Table
               columns={columns}

@@ -1,0 +1,27 @@
+.filter-checkbox .ant-checkbox-group-item:nth-child(1) .ant-checkbox-inner{
+    background-color: #87d068;
+    border-color: #87d068;
+}
+.filter-checkbox .ant-checkbox-group-item:nth-child(2) .ant-checkbox-inner{
+    background-color: #FADA5E;
+    border-color: #FADA5E;
+}
+.filter-checkbox .ant-checkbox-group-item:nth-child(3) .ant-checkbox-inner{
+    background-color: #ff6347;
+    border-color: #ff6347;
+}
+.filter-checkbox .ant-checkbox-group-item:nth-child(4) .ant-checkbox-inner{
+    background-color: #D3D3D3;
+    border-color: #D3D3D3;
+}
+
+.ant-result-icon{
+    display: inline;
+    margin-right:1rem;
+}
+
+.ant-result-title{
+    display: inline;
+    position: relative;
+    top: -16px;
+}

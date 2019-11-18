@@ -10,7 +10,7 @@ function Login(props) {
     let { REACT_APP_DOMAIN: domain, REACT_APP_LOGIN_PORT: port } = process.env;
     props.form.validateFields((err, values) => {
       if (!err) {
-        axios.post(`${domain}:${port}/api/user/login`, values).then(res => {
+        axios.post('https://agrix-api.herokuapp.com/server/api/user/login', values).then(res => {
           const { data } = res;
           if (data.status) {
             setError('');

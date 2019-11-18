@@ -3,9 +3,11 @@ import cloneDeep from 'lodash/cloneDeep';
 import lulc from '../static/lulc';
 import dutch from '../static/tamilnadu';
 
-export const filterGeo = (legends, main)=>{
+export const filterGeo = (checked)=>{
     var f;
         f = cloneDeep(geo);
+        if(checked)
+            f.features = f.features.filter(feature => checked.indexOf(feature.properties.yield) !== -1);
     return f;
 };
 
