@@ -21,6 +21,8 @@ import 'ol/ol.css';
 import './Map.css';
 import { message, Checkbox, Card, Typography } from 'antd';
 import { filterGeo } from './utils/filter';
+import Popup from 'ol-popup';
+
 const { Text: TypographyText } = Typography;
 const CheckboxGroup = Checkbox.Group;
 
@@ -45,20 +47,21 @@ const generateStyle = (strokeClr, fillClr, text, txtFillClr) => new Style({
 const styleBorder = feature => {
   const { yield: y } = feature.values_;
   switch (y) {
-    case 'High':
+    case 'Crop standing for full season':
       return generateStyle('#A03582', '#87d068', feature.values_.BLKNAME, '#000');
-    case 'Medium':
+    case 'Crops failed end-season':
       return generateStyle('#A03582', '#FADA5E', feature.values_.BLKNAME, '#000');
-    case 'Low':
+    case 'Crops failed mid-season':
       return generateStyle('#A03582', '#ff6347', feature.values_.BLKNAME, '#000');
-    case 'Nil':
+    case 'Crops failed in 30 days':
       return generateStyle('#A03582', '#D3D3D3', feature.values_.BLKNAME, '#000');
     default:
       return generateStyle('#A03582', 'rgba(255, 255, 0, 0.1)', feature.values_.BLKNAME, '#f56a00');
   }
 
 }
-const plainOptions = ['High', 'Medium', 'Low', 'Nil'];
+const plainOptions = ['Crop standing for full season', 'Crops failed end-season', 'Crops failed mid-season', 'Crops failed in 30 days'];
+let popup;
 
 class Map extends Component {
   constructor(props) {
@@ -67,9 +70,39 @@ class Map extends Component {
       zoom: 1,
       showSubmit: false,
       level: -1,
-      checkedList: ['High', 'Medium', 'Low', 'Nil']
+      checkedList: ['Crop standing for full season', 'Crops failed end-season', 'Crops failed mid-season', 'Crops failed in 30 days']
     };
     this.draw = null;
+  }
+  profit = (y)=> {
+    switch (y) {
+      case 'Crop standing for full season':
+        return '$54000'
+      case 'Crops failed end-season':
+        return '$4000'
+      case 'Crops failed mid-season':
+        return '$900'
+      case 'Crops failed in 30 days':
+        return '$0'
+    }
+  }
+  showPop = () => {
+    this.olmap.on('pointermove', (event) => {
+      if (event)
+        this.olmap.forEachFeatureAtPixel(event.pixel,
+          feature => {
+            const { values_ } = feature;
+            if (values_) {
+              popup.show(event.coordinate, `<div><p>Area: ${values_.AREA}sq.km</p><p>Expected Claim Amount: ${this.profit(values_.yield)}</p></div>`);
+            }
+          },
+          {
+            layerFilter: (layer) => {
+              return (layer.type === new VectorLayer().type) ? true : false;
+            }, hitTolerance: 6
+          }
+        );
+    });
   }
   configureMap = () => {
     let boundarySource = new VectorSource();
@@ -137,6 +170,9 @@ class Map extends Component {
       this.olmap.addInteraction(this.select);
       setTimeout(() => {
         this.olmap.getView().fit([8732783.276223768, 1101579.0139838243, 8823962.420483025, 1201976.8502093428], { duration: 2000 });
+        popup = new Popup();
+        this.olmap.addOverlay(popup);
+        this.showPop();
         hide();
       }, 1000);
       this.select.on('select', e => {
@@ -231,7 +267,7 @@ class Map extends Component {
     this.setState({ checkedList });
     this.update(checkedList)
   }
-  update = checkedList => { 
+  update = checkedList => {
     let boundarySource = new VectorSource({
       features: (new GeoJSON({
         dataProjection: 'EPSG:4326',
@@ -245,10 +281,10 @@ class Map extends Component {
     this.updateMap();
     return (
       <>
-        <Card style={{ position: 'absolute', zIndex: 1, top: 70, right: 20 }}>
-          <TypographyText strong>yield</TypographyText>
+        <Card style={{ position: 'absolute', width: '30%', zIndex: 1, top: 70, right: 20 }}>
+          <TypographyText strong>Crop Profile</TypographyText>
           <CheckboxGroup
-          className='filter-checkbox'
+            className='filter-checkbox'
             style={{ float: 'right', paddingLeft: '30px' }}
             options={plainOptions}
             value={this.state.checkedList}
@@ -260,7 +296,7 @@ class Map extends Component {
           editAction={this.toggleEdit}
           clearDraw={this.clearDraw}
           handleSubmit={this.handleSubmit}
-          submit={this.state.showSubmit}  draw={true}/>}
+          submit={this.state.showSubmit} draw={true} />}
       </>
     )
   }

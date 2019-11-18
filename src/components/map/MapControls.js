@@ -1,67 +1,32 @@
 import React, { useState, useEffect } from "react";
-import { Icon, Modal, Steps, Button, Divider, Result, Table, Form, Select, DatePicker, notification, Checkbox, Tooltip, Typography, Row, Col } from 'antd';
+import { Icon, Modal, Steps, Button, Divider, Result, Table, Form, Select, DatePicker, Timeline, notification, Checkbox, Tooltip, Typography, Row, Col } from 'antd';
 import propTypes from "prop-types";
 import ApexCharts from 'apexcharts';
+import Logo from '../../images/logo.png';
+import result from './static/result.pdf'
+
+const { Item: TimelineItem } = Timeline;
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 const CheckboxGroup = Checkbox.Group;
-const { Title } = Typography;
+const { Text } = Typography;
 const pieOption = {
   chart: {
     type: 'pie'
   },
-  series: [324947.05, 718969.0104, 703248.9567, 102469.5138, 100839.6755,
-    96475.91474, 90429.74025, 87590.66701, 76286.94947, 76076.64775, 616657.2229],
-  chartOptions: {
-    labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
-  },
+  series: [2, 3, 1, 8],
+  labels: ['Failed in 30 days', 'Failed Mid season', 'Failed End season', 'Crop standing for full year'],
   legend: {
-    show: false
-  },
-  colors: ['#800080', '#FF0000', '#FF00FF', '#000080', '#0000FF', '#008000', '#00FF00', '#ffa500', '#654321', '#d3d3d3', '#FF8C00']
+    show: true
+  }
 }
 const rangeOption = {
   chart: {
-    type: 'rangeBar'
+    type: 'pie'
   },
-  series: [{
-    data: [{
-      x: '1',
-      y: [0, 324947.05]
-    }, {
-      x: '2',
-      y: [0, 718969.0104]
-    }, {
-      x: '3',
-      y: [0, 703248.9567]
-    }, {
-      x: '4',
-      y: [0, 102469.5138]
-    }, {
-      x: '5',
-      y: [0, 100839.6755]
-    }, {
-      x: '6',
-      y: [0, 96475.91474]
-    }, {
-      x: '7',
-      y: [0, 90429.74025]
-    }, {
-      x: '8',
-      y: [0, 87590.66701]
-    }, {
-      x: '9',
-      y: [0, 76286.94947]
-    }, {
-      x: '10',
-      y: [0, 76076.64775]
-    }, {
-      x: '11',
-      y: [0, 616657.2229]
-    }
-    ]
-  }]
+  series: [163, 210, 80, 534],
+  labels: ['Failed in 30 days', 'Failed Mid season', 'Failed End season', 'Crop standing for full year']
 }
 const data = [
   {
@@ -175,6 +140,58 @@ const blocks = [
     blockName: 'Other districts'
   },
 ];
+const blocks1 = [
+  {
+    area: '87',
+    amount: '26100',
+    blockName: 'Viralimalai'
+  },
+  {
+    area: '76',
+    amount: '22800',
+    blockName: 'Keeranur'
+  }, {
+    blockName: 'Buppur',
+    area: '163',
+    amount: '48900'
+  }
+];
+const blocks2 = [
+  {
+    area: '69',
+    amount: '41400',
+    blockName: 'Ponnamaravathi'
+  },
+  {
+    area: '85',
+    amount: '51000',
+    blockName: 'Arimalam'
+  }, {
+    blockName: 'Reserved Forest',
+    area: '56',
+    amount: '33600'
+  }, {
+    blockName: 'Aranthangi',
+    area: '210',
+    amount: '126000'
+  }
+];
+const blocks3 = [
+  {
+    area: '80',
+    amount: '64000',
+    blockName: 'Alangudi'
+  },
+  {
+    area: '80',
+    amount: '64000',
+    blockName: 'Pudhukottai'
+  }, {
+    blockName: 'Buppur',
+    area: '163',
+    amount: '48900'
+  }
+];
 const columns = [
   {
     title: 'No',
@@ -204,6 +221,26 @@ const columns = [
     title: 'Block Name',
     dataIndex: 'blockName',
     key: 'blockName'
+  }
+];
+const columns1 = [
+  {
+    title: 'Village Names',
+    dataIndex: 'blockName',
+    key: 'blockName',
+    width: '7%'
+  },
+  {
+    title: 'Rice Area (in sq.km)',
+    dataIndex: 'area',
+    key: 'area',
+    width: '15%'
+  },
+  {
+    title: 'Expected Claim Amount in USD',
+    dataIndex: 'amount',
+    key: 'amount',
+    width: '15%'
   }
 ];
 const { Step } = Steps;
@@ -334,21 +371,129 @@ const MapControls = ({ editAction, submit, clearDraw, handleSubmit, draw }) => {
         <Tooltip placement="left" title='Statistics'><button style={{ backgroundColor: `${edit ? '#004590' : ''}` }} onClick={onStats}><Icon type="area-chart" /></button>{/* //#004590 */}</Tooltip>
       </div>}
       <Modal
-        title="Statistics"
+        title={<div><img src={Logo} height='32' alt='logo' /><span style={{ float: 'right' }}>Agri-X</span></div>}
         visible={stats}
         footer={null}
         centered
         width='80%'
       >
-        <div style={{ height: 200 }}>
+        <div style={{ height: 400, overflowY: 'auto' }}>
           <Row>
-            <Col span={6}>
-              <div id="chart"></div>
+            <Col span={12}>
+              <Text strong>Job ID: </Text><Text>621821</Text>
             </Col>
-            <Col span={6}>
+            <Col span={12}>
+              <Text strong>Report Generated on: </Text><Text>2019-11-18 10:10:10</Text>
+            </Col>
+          </Row><br />
+          <Row>
+            <Col span={24}>
+              <Text strong>Job Submitted By: </Text><Text>Experian1</Text>
+            </Col>
+          </Row>
+          <Divider />
+          <Row>
+            <Col span={7}>
+            </Col>
+            <Col span={10}>
+              <Text strong>Insurance Claim Verification Report</Text>
+            </Col>
+            <Col span={7}>
+            </Col>
+          </Row><br />
+          <Divider />
+          <Row>
+            <Text strong>Crop Type: </Text><Text>Rice</Text>
+          </Row><br />
+          <Row>
+            <Text strong>Selected Output Parameter: </Text><Text>Crop Profile</Text>
+          </Row><br />
+          <Row>
+            <Text strong>Analysis From: </Text><Text>10/01/2019 to 01/31/2020</Text>
+          </Row><br />
+          <Divider />
+          <Row>
+            <Text strong>Report Summary</Text>
+          </Row><br />
+          <Row>
+            <Timeline>
+              <TimelineItem ><Row><Col span={12}>Total No. of Villages: 13</Col></Row></TimelineItem>
+              <TimelineItem ><Row><Col span={12}>Total arable area : 1354 hectares</Col></Row></TimelineItem>
+              <TimelineItem ><Row><Col span={12}>Rice Area: 987 hectares</Col></Row></TimelineItem>
+              <TimelineItem><Row><Col span={12}>Other crops: 367 hectares</Col></Row></TimelineItem>
+              <TimelineItem ><Row><Col span={12}>Not Planted: 318 hectares</Col></Row></TimelineItem>
+            </Timeline>
+          </Row>
+          <Row>
+            <Text strong>Claim Verification Summary</Text>
+          </Row><br />
+          <Row>
+            <Timeline>
+              <TimelineItem ><Row><Col span={12}>Failed in 30 days: 2 villages (163 hectares)</Col></Row></TimelineItem>
+              <TimelineItem ><Row><Col span={12}>Failed in mid-season: 3 villages (210 hectares)</Col></Row></TimelineItem>
+              <TimelineItem ><Row><Col span={12}>Failed in end-season: 1 village (80 hectares)</Col></Row></TimelineItem>
+              <TimelineItem><Row><Col span={12}>Crop standing for full season: 8 villages (534 hectares)</Col></Row></TimelineItem>
+            </Timeline>
+          </Row><br />
+          <Row>
+            <Table
+              columns={columns1}
+              dataSource={blocks1}
+              bordered
+              pagination={false}
+              title={() => <Row><Col span={5}></Col><Text strong>Crops failed in 30 days (Settlement amount 300 USD/ hectare)</Text></Row>}
+            />
+          </Row><br />
+          <Row>
+            <Table
+              columns={columns1}
+              dataSource={blocks2}
+              bordered
+              pagination={false}
+              title={() => <Row><Col span={5}></Col><Text strong>Crops failed mid-season (Settlement amount 600 USD/ hectares)</Text></Row>}
+            />
+          </Row><br />
+          <Row>
+            <Table
+              columns={columns1}
+              dataSource={blocks3}
+              bordered
+              pagination={false}
+              title={() => <Row><Col span={5}></Col><Text strong>Crops failed end-season (Settlement amount 800 USD/ hectares)</Text></Row>}
+            />
+          </Row><br />
+          <Row><Col span={10}><Col span={2}></Col> <Text strong>Crop Failure Statistics</Text></Col><Col span={7}></Col></Row>
+          <Row><Col span={7}></Col>
+            <Col span={10}>
+              <Text strong>Number of Villages</Text>
+            </Col>
+          </Row>
+          <Row>
+            <Col span={3}></Col>
+            <Col span={18}>
               <div id='pie'></div>
             </Col>
           </Row>
+          <Divider />
+          <Row><Col span={7}></Col>
+            <Col span={10}>
+              <Text strong>Number of Hectares</Text>
+            </Col>
+          </Row>
+          <Row>
+            <Col span={3}></Col>
+            <Col span={18}>
+              <div id="chart"></div>
+            </Col>
+          </Row>
+        </div>
+        <div style={{ paddingTop: 20 }}>
+          <Button type="primary" href={result} target="_blank">
+            Print
+          </Button>
+          <Button type="default" style={{ marginLeft: 20 }} onClick={() => showStats(false)}>
+            Close
+          </Button>
         </div>
       </Modal>
       <Modal

@@ -2,7 +2,7 @@ export default [
     {
         key: '621821',
         description: 'Pudhukottai',
-        name: 'John Brown',
+        name: 'Experian1',
         createdOn: '2019-11-18 10:10:10',
         completed: 100,
         status: 'Completed'

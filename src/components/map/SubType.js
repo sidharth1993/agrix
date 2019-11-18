@@ -39,11 +39,11 @@ const SubType = ({ classes, mainType, handleChange }) => {
         }],
         2: [{
             id: 201,
-            type: 'High Yeild',
+            type: 'Crop standing for full season Yeild',
             color:'green'
         }, {
             id: 202,
-            type: 'Medium Yeild',
+            type: 'Crops failed end-season Yeild',
             color:'blue'
         }, {
             id: 203,
