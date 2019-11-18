@@ -112,11 +112,11 @@ class Map extends Component {
       this.setState({ zoom });
     });
   }
-  shouldComponentUpdate(nextProps) {
-    if (this.props.logged === nextProps.logged)
-      return false;
-    return true;
-  }
+/*   shouldComponentUpdate(nextProps) {
+    if(this.props.logged !== nextProps.logged)
+      return true;
+    return false;
+  } */
   select = new Select({
     condition: doubleClick
   })

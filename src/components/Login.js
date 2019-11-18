@@ -1,6 +1,6 @@
 /* eslint-disable import/no-named-as-default */
 import React, { useState } from "react";
-import { Form, Icon, Input, Button, Alert } from 'antd';
+import { Form, Icon, Input, Button, Alert, message } from 'antd';
 import axios from 'axios';
 
 function Login(props) {
@@ -10,13 +10,16 @@ function Login(props) {
     let { REACT_APP_DOMAIN: domain, REACT_APP_LOGIN_PORT: port } = process.env;
     props.form.validateFields((err, values) => {
       if (!err) {
+        let hide = message.loading('Loading User', 0);
         axios.post('https://agrix-api.herokuapp.com/server/api/user/login', values).then(res => {
           const { data } = res;
           if (data.status) {
             setError('');
             props.setLogged(true);
-          } else
+          } else{
             setError(data.data);
+          }
+         hide();
         })
       }
     });
