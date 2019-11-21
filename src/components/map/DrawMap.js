@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import OlMap from "ol/Map";
 import OlView from "ol/View";
 import OlLayerTile from "ol/layer/Tile";
@@ -63,36 +63,6 @@ const Map = ({height,width,logged}) => {
   const [showSubmit, setShowSubmit] = useState(defaultShowSubmit);
   //const [level, setLevel] = useState(defaultLevel);
   let level = defaultLevel;
-
-  const configMap = () => {
-    const boundarySource = new VectorSource();
-    const boundaryLayer = new VectorLayer({ source: boundarySource, style: f => styleBorder(f) });
-    const level1Source = new VectorSource();
-    const level1Layer = new VectorLayer({ source: level1Source, style: f => styleDt(f) });
-  
-    const view = new OlView({center, zoom: zoom});
-    const raster = new OlLayerTile({
-      source: new OlSourceOSM()
-    });
-    olmap = new OlMap({
-      interactions: defaults({
-        doubleClickZoom: false
-      }),
-      target: null,
-      layers: [
-        raster,
-        boundaryLayer,
-        drawVector,
-        level1Layer
-      ],
-      controls: [
-        new Zoom({
-          className: 'zoom'
-        })
-      ],
-      view: view
-    });
-  };
 
   const handleSubmit = (showSubmit) => {
     setShowSubmit(showSubmit);
@@ -167,11 +137,37 @@ const Map = ({height,width,logged}) => {
 
   //componentDidMount
   useEffect(()=>{
-    configMap();
+    const boundarySource = new VectorSource();
+    const boundaryLayer = new VectorLayer({ source: boundarySource, style: f => styleBorder(f) });
+    const level1Source = new VectorSource();
+    const level1Layer = new VectorLayer({ source: level1Source, style: f => styleDt(f) });
+  
+    const view = new OlView({center, zoom: zoom});
+    const raster = new OlLayerTile({
+      source: new OlSourceOSM()
+    });
+    olmap = new OlMap({
+      interactions: defaults({
+        doubleClickZoom: false
+      }),
+      target: null,
+      layers: [
+        raster,
+        boundaryLayer,
+        drawVector,
+        level1Layer
+      ],
+      controls: [
+        new Zoom({
+          className: 'zoom'
+        })
+      ],
+      view: view
+    });
     olmap.setTarget("draw-map");
     olmap.on("moveend", () => {
-      let zoom = olmap.getView().getZoom();
-      setZoom(zoom);
+      let newZoom = olmap.getView().getZoom();
+      setZoom(newZoom);
     });
   },[]);
 
