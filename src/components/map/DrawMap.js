@@ -56,27 +56,13 @@ let draw = null;
 const drawSource = new VectorSource({ wrapX: false });
 const drawVector = new VectorLayer({ source: drawSource });
 const drawNewPoly = { source: drawSource, type: 'Polygon'};
-const defaultConfig = 1;
 
 const Map = ({height,width,logged}) => {
 
   const [zoom, setZoom] = useState(defaultZoom);
   const [showSubmit, setShowSubmit] = useState(defaultShowSubmit);
   //const [level, setLevel] = useState(defaultLevel);
-  let level = defaultLevel
-
-  const toggleEdit = (edit) => {
-      if (edit) {
-          olmap.getLayers().array_[2].getSource().clear();
-          draw = new Draw(drawNewPoly);
-          draw.on('drawend', () => { setShowSubmit(true) });
-          olmap.addInteraction(draw);
-      } else {
-          olmap && draw && olmap.removeInteraction(draw);
-          draw && draw.removeEventListener('drawend');
-          draw = null;
-      }
-  }
+  let level = defaultLevel;
 
   const configMap = () => {
     const boundarySource = new VectorSource();
@@ -112,10 +98,21 @@ const Map = ({height,width,logged}) => {
     setShowSubmit(showSubmit);
   }
 
+  const toggleEdit = (edit) => {
+    if (edit) {
+        olmap.getLayers().array_[2].getSource().clear();
+        draw = new Draw(drawNewPoly);
+        draw.on('drawend', () => { setShowSubmit(true) });
+        olmap.addInteraction(draw);
+    } else {
+        olmap && draw && olmap.removeInteraction(draw);
+        draw && draw.removeEventListener('drawend');
+        draw = null;
+    }
+}
+
   const clearDraw = () => {
-    olmap && draw && olmap.removeInteraction(draw);
-    draw && draw.removeEventListener('drawend');
-    draw = null;
+    toggleEdit(false);
     olmap.getLayers().array_[2].getSource().clear();
   }
 
@@ -124,7 +121,6 @@ const Map = ({height,width,logged}) => {
   }
 
   const selectArea = (source, id) => {
-    //const { level } = this.state;
     let url = `https://agrix-api.herokuapp.com/server/api/division?level=${level}`;
     if (level === 1)
       url += `&blockId=${id}`;
