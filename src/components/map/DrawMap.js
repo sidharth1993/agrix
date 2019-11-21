@@ -62,8 +62,8 @@ const Map = ({height,width,logged}) => {
 
   const [zoom, setZoom] = useState(defaultZoom);
   const [showSubmit, setShowSubmit] = useState(defaultShowSubmit);
-  const [level, setLevel] = useState(defaultLevel);
-  const [config, setConfig] = useState(defaultConfig);
+  //const [level, setLevel] = useState(defaultLevel);
+  let level = defaultLevel
 
   const toggleEdit = (edit) => {
       if (edit) {
@@ -142,7 +142,8 @@ const Map = ({height,width,logged}) => {
         let layer;
         if (level === 0) {
           layer = olmap.getLayers().array_[1]
-          setLevel(1);
+          //setLevel(1);
+          level = 1;
         } else if (level === 1) {
           layer = olmap.getLayers().array_[3];
         }
@@ -186,7 +187,8 @@ const Map = ({height,width,logged}) => {
           if (!res.data.status) {
             return;
           }
-          setLevel(0);
+          //setLevel(0);
+          level = 0;
           let boundarySource = new VectorSource({
             features: (new GeoJSON({
               dataProjection: 'EPSG:4326',
@@ -202,23 +204,21 @@ const Map = ({height,width,logged}) => {
           olmap.addInteraction(select);
           select.on('select', e => {
             try {
-              const id = e.selected[0].getProperties('values_').OBJECTID;
-              selectArea(e.target, id);
-              if (e.selected[0].values_.BLOCKS_)
-                fitToExtent(e.target.getFeatures().getArray()[0]);
+                const id = e.selected[0].getProperties('values_').OBJECTID;
+                selectArea(e.target, id);
+                if (e.selected[0].values_.BLOCKS_)
+                  fitToExtent(e.target.getFeatures().getArray()[0])              
             } catch (e) {
               console.log(e);
             }
           });
         });
       } else {
-        if(config === 0){
           clearLayers();
           olmap.removeInteraction(select);
           select.removeEventListener('select');
-        }
       } 
-    },[logged,level]);
+    },[logged]);
   
   //updateMap
   return (
