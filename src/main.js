@@ -18,6 +18,22 @@ function Main(props) {
     const [showDraw, toggleDraw] = useState(false);
     const [showUpload, toggleUploadModal] = useState(false);
     const [logged, setLog] = useState(false);
+    const routes = [
+        {path:"/",component:<DrawMap logged={logged} />},
+        {path:"/analysis",component:<Analysis />},
+        {path:"/results",component:<Map logged={logged} />}
+    ];
+    const getRoutes = ()=>{
+        if(logged){
+            return routes.map(e=>(
+                <Route exact path={e.path} >
+                    {e.component}
+                </Route>)
+                )
+        }else{            
+            return (<Route path="*">{routes[0].component}</Route>);
+        }
+    }
 
     return (
         <HashRouter>
@@ -25,15 +41,7 @@ function Main(props) {
             <Draw showDraw={showDraw} toggleDraw={toggleDraw} showUpload={toggleUploadModal} />
             {showUpload && <UploadModal open={showUpload} close={() => toggleUploadModal(false)} />}
             <Switch>
-                <Route exact path="/analysis">
-                    <Analysis />
-                </Route>
-                <Route exact path="/">
-                    <DrawMap logged={logged} />
-                </Route>
-                <Route exact path="/results">
-                    <Map logged={true} />
-                </Route>
+                {getRoutes()}
             </Switch>
         </HashRouter>
     )
