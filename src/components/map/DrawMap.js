@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import OlMap from "ol/Map";
 import OlView from "ol/View";
 import OlLayerTile from "ol/layer/Tile";
@@ -11,7 +11,6 @@ import { doubleClick } from 'ol/events/condition';
 import Select from 'ol/interaction/Select';
 import { Fill, Stroke, Style, Text} from 'ol/style';
 import windowDimensions from 'react-window-dimensions';
-import PropType from 'prop-types';
 import axios from 'axios';
 import { Vector as VectorLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
@@ -23,6 +22,7 @@ import './Map.css';
 
 const center = [0, 0];
 const { REACT_APP_DOMAIN: domain, REACT_APP_LOGIN_PORT: port } = process.env;
+
 const styleBorder = feature => new Style({
   stroke: new Stroke({
     color: '#0099FF',
@@ -32,6 +32,7 @@ const styleBorder = feature => new Style({
     color: 'rgba(0, 0, 0, 0)'
   })
 });
+
 const styleDt = feature => new Style({
   stroke: new Stroke({
     color: '#A03582',
@@ -47,86 +48,50 @@ const styleDt = feature => new Style({
     })
   })
 });
-class Map extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      zoom: 1,
-      showSubmit: false,
-      level: -1
-    };
-    this.draw = null;
-  }
-  configureMap = () => {
-    let boundarySource = new VectorSource();
-    let boundaryLayer = new VectorLayer({
-      source: boundarySource,
-      style: f => styleBorder(f)
-    });
-    let level1Source = new VectorSource();
-    let level1Layer = new VectorLayer({
-      source: level1Source,
-      style: f => styleDt(f)
-    });
-    this.drawSource = new VectorSource({ wrapX: false });
-    var drawVector = new VectorLayer({
-      source: this.drawSource
-    });
-    this.view = new OlView({
-      center,
-      zoom: this.state.zoom
-    })
-    var raster = new OlLayerTile({
-      source: new OlSourceOSM()
-    });
-    this.olmap = new OlMap({
-      interactions: defaults({
-        doubleClickZoom: false
-      }),
-      target: null,
-      layers: [
-        raster,
-        boundaryLayer,
-        drawVector,
-        level1Layer
-      ],
-      controls: [
-        new Zoom({
-          className: 'zoom'
-        })
-      ],
-      view: this.view
-    });
+let olmap = null;
+const defaultZoom = 1;
+const defaultShowSubmit = false;
+const defaultLevel = -1;
+let draw = null;
+const drawSource = new VectorSource({ wrapX: false });
+const drawVector = new VectorLayer({ source: drawSource });
+const drawNewPoly = { source: drawSource, type: 'Polygon'};
+
+const Map = ({height,width,logged}) => {
+
+  const [zoom, setZoom] = useState(defaultZoom);
+  const [showSubmit, setShowSubmit] = useState(defaultShowSubmit);
+  //const [level, setLevel] = useState(defaultLevel);
+  let level = defaultLevel;
+
+  const handleSubmit = (showSubmit) => {
+    setShowSubmit(showSubmit);
   }
 
-  updateMap() {
-    if (this.olmap)
-      this.olmap.getView().setZoom(this.state.zoom);
+  const toggleEdit = (edit) => {
+    if (edit) {
+        olmap.getLayers().array_[2].getSource().clear();
+        draw = new Draw(drawNewPoly);
+        draw.on('drawend', () => { setShowSubmit(true) });
+        olmap.addInteraction(draw);
+    } else {
+        olmap && draw && olmap.removeInteraction(draw);
+        draw && draw.removeEventListener('drawend');
+        draw = null;
+    }
+}
+
+  const clearDraw = () => {
+    toggleEdit(false);
+    olmap.getLayers().array_[2].getSource().clear();
   }
 
-  componentDidMount() {
-    this.configureMap();
-    this.olmap.setTarget("draw-map");
-    this.olmap.on("moveend", () => {
-      let zoom = this.olmap.getView().getZoom();
-      this.setState({ zoom });
-    });
+  const fitToExtent = feature => {
+    olmap.getView().fit(feature.getGeometry().getExtent(), { duration: 2000 });
   }
-  shouldComponentUpdate(nextProps) {
-    if (this.props.logged === nextProps.logged)
-      return false;
-    return true;
-  }
-  select = new Select({
-    condition: doubleClick
-  })
-  fitToExtent = feature => {
-    let extent = feature.getGeometry().getExtent();
-    this.olmap.getView().fit(extent, { duration: 2000 });
-  }
-  selectArea = (source, id) => {
-    const { level } = this.state;
-    let url = `https://agrix-api.herokuapp.com/server/api/division?level=${this.state.level}`;
+
+  const selectArea = (source, id) => {
+    let url = `https://agrix-api.herokuapp.com/server/api/division?level=${level}`;
     if (level === 1)
       url += `&blockId=${id}`;
     if (level === 0 || (level === 1 && id)) {
@@ -142,108 +107,123 @@ class Map extends Component {
         });
         let layer;
         if (level === 0) {
-          layer = this.olmap.getLayers().array_[1]
-          this.setState({ level: 1 });
+          layer = olmap.getLayers().array_[1]
+          //setLevel(1);
+          level = 1;
         } else if (level === 1) {
-          layer = this.olmap.getLayers().array_[3];
+          layer = olmap.getLayers().array_[3];
         }
         layer.setSource(boundarySource);
         setTimeout(() => {
           if (level === 1) {
-            this.fitToExtent(source.getFeatures().getArray()[0])
+            fitToExtent(source.getFeatures().getArray()[0])
           }
         }, 500);
         hide();
       }, res => { if (level === 0) hide(); });
     }
   }
-  componentDidUpdate() {
-    if (this.props.logged && this.state.level === -1) {
-      let hide = message.loading('Loading Map', 0);
-      axios.get(`https://agrix-api.herokuapp.com/server/api/location/geojson`).then(res => {
-        if (!res.data.status) {
-          return;
-        }
-        this.setState({ level: 0 });
-        let boundarySource = new VectorSource({
-          features: (new GeoJSON({
-            dataProjection: 'EPSG:4326',
-            featureProjection: 'EPSG:3857'
-          })).readFeatures(res.data.data)
-        });
-        this.olmap.getLayers().array_[1].setSource(boundarySource);
-        setTimeout(() => {
-          this.fitToExtent(this.olmap.getLayers().array_[1].getSource().getFeatures()[0])
-          hide();
-          message.info('Hint: Double click to load districts!')
-        }, 1000);
-        this.olmap.addInteraction(this.select);
-        this.select.on('select', e => {
-          try {
-            const id = e.selected[0].getProperties('values_').OBJECTID;
-            this.selectArea(e.target, id);
-            if (e.selected[0].values_.BLOCKS_)
-              this.fitToExtent(e.target.getFeatures().getArray()[0]);
-          } catch (e) {
-            console.log(e);
-          }
-        });
-      });
-    } else {
-      this.clearLayers();
-      this.olmap.removeInteraction(this.select);
-      this.select.removeEventListener('select');
-    }
-  }
-  clearLayers = () => {
-    let layers = this.olmap.getLayers().array_;
+
+  const select = new Select({
+    condition: doubleClick
+  })
+
+  const clearLayers = () => {
+    let layers = olmap.getLayers().array_;
     layers.forEach(layer => {
       layer.getSource().clear();
     });
   }
-  toggleEdit = (edit) => {
-    if (edit) {
-      this.olmap.getLayers().array_[2].getSource().clear();
-      this.draw = new Draw({
-        source: this.drawSource,
-        type: 'Polygon'
-      });
-      this.draw.on('drawend', () => {
-        this.setState({
-          showSubmit: true
+
+  //componentDidMount
+  useEffect(()=>{
+    const boundarySource = new VectorSource();
+    const boundaryLayer = new VectorLayer({ source: boundarySource, style: f => styleBorder(f) });
+    const level1Source = new VectorSource();
+    const level1Layer = new VectorLayer({ source: level1Source, style: f => styleDt(f) });
+  
+    const view = new OlView({center, zoom: zoom});
+    const raster = new OlLayerTile({
+      source: new OlSourceOSM()
+    });
+    olmap = new OlMap({
+      interactions: defaults({
+        doubleClickZoom: false
+      }),
+      target: null,
+      layers: [
+        raster,
+        boundaryLayer,
+        drawVector,
+        level1Layer
+      ],
+      controls: [
+        new Zoom({
+          className: 'zoom'
+        })
+      ],
+      view: view
+    });
+    olmap.setTarget("draw-map");
+    olmap.on("moveend", () => {
+      let newZoom = olmap.getView().getZoom();
+      setZoom(newZoom);
+    });
+  },[]);
+
+  //componentDidUpdate
+  useEffect(()=>{
+      if (logged && level === -1) {
+        let hide = message.loading('Loading Map', 0);
+        axios.get(`https://agrix-api.herokuapp.com/server/api/location/geojson`).then(res => {
+          if (!res.data.status) {
+            return;
+          }
+          //setLevel(0);
+          level = 0;
+          let boundarySource = new VectorSource({
+            features: (new GeoJSON({
+              dataProjection: 'EPSG:4326',
+              featureProjection: 'EPSG:3857'
+            })).readFeatures(res.data.data)
+          });
+          olmap.getLayers().array_[1].setSource(boundarySource);
+          setTimeout(() => {
+            fitToExtent(olmap.getLayers().array_[1].getSource().getFeatures()[0])
+            hide();
+            message.info('Hint: Double click to load districts!')
+          }, 1000);
+          olmap.addInteraction(select);
+          select.on('select', e => {
+            try {
+                const id = e.selected[0].getProperties('values_').OBJECTID;
+                selectArea(e.target, id);
+                if (e.selected[0].values_.BLOCKS_)
+                  fitToExtent(e.target.getFeatures().getArray()[0])              
+            } catch (e) {
+              console.log(e);
+            }
+          });
         });
-      });
-      this.olmap.addInteraction(this.draw);
-    } else {
-      this.olmap && this.draw && this.olmap.removeInteraction(this.draw);
-      this.draw && this.draw.removeEventListener('drawend');
-      this.draw = null;
-    }
-  }
-  clearDraw = () => {
-    this.olmap && this.draw && this.olmap.removeInteraction(this.draw);
-    this.draw && this.draw.removeEventListener('drawend');
-    this.draw = null;
-    this.olmap.getLayers().array_[2].getSource().clear();
-  }
-  handleSubmit = (showSubmit) => {
-    this.setState({ showSubmit });
-  }
-  render() {
-    this.updateMap();
-    return (
-      <>
-        <div id="draw-map" style={{ width: "100%", height: `${this.props.height - 67}px` }}></div>
-        {this.props.logged && <MapControl
-          editAction={this.toggleEdit}
-          clearDraw={this.clearDraw}
-          handleSubmit={this.handleSubmit}
-          submit={this.state.showSubmit}/>}
-      </>
-    )
-  }
+      } else {
+          clearLayers();
+          olmap.removeInteraction(select);
+          select.removeEventListener('select');
+      } 
+    },[logged]);
+  
+  //updateMap
+  return (
+    <>
+    {olmap && olmap.getView().setZoom(zoom)}
+      <div id="draw-map" style={{ width: "100%", height: `${height - 67}px` }}></div>
+      {logged && <MapControl
+        editAction={toggleEdit}
+        clearDraw={clearDraw}
+        handleSubmit={handleSubmit}
+        submit={showSubmit}/>}
+    </>
+  )
 }
-Map.propTypes = {
-  height: PropType.number
-}
+
 export default windowDimensions()(Map);
