@@ -16,7 +16,8 @@ const pieOption = {
     type: 'pie'
   },
   series: [2, 3, 1, 8],
-  labels: ['Failed in 30 days', 'Failed Mid season', 'Failed End season', 'Crop standing for full year'],
+  colors: ['#D3D3D3', '#FF6347', '#FADA5E', '#87D068'],
+  labels: ['Failed in 30 days', 'Failed Mid of season', 'Failed End of season', 'Crop standing for full year'],
   legend: {
     show: true
   }
@@ -26,7 +27,8 @@ const rangeOption = {
     type: 'pie'
   },
   series: [163, 210, 80, 534],
-  labels: ['Failed in 30 days', 'Failed Mid season', 'Failed End season', 'Crop standing for full year']
+  colors: ['#D3D3D3', '#FF6347', '#FADA5E', '#87D068'],
+  labels: ['Failed in 30 days', 'Failed Mid of season', 'Failed End ofY season', 'Crop standing for full year']
 }
 const data = [
   {
@@ -142,53 +144,49 @@ const blocks = [
 ];
 const blocks1 = [
   {
-    area: '87',
+    area: '322700119.483',
     amount: '26100',
-    blockName: 'Viralimalai'
+    blockName: 'Ponnamaravathi'
   },
   {
-    area: '76',
+    area: '269843777.189',
     amount: '22800',
-    blockName: 'Keeranur'
-  }, {
-    blockName: 'Buppur',
-    area: '163',
-    amount: '48900'
+    blockName: 'Arimalam'
   }
 ];
 const blocks2 = [
   {
-    area: '69',
+    area: '444975681.082',
     amount: '41400',
-    blockName: 'Ponnamaravathi'
+    blockName: 'Annavasal'
   },
   {
-    area: '85',
+    area: '294244923.14',
     amount: '51000',
-    blockName: 'Arimalam'
+    blockName: 'Thirumayam'
   }, {
-    blockName: 'Reserved Forest',
-    area: '56',
+    blockName: 'AvudayarKovil',
+    area: '385801003.949',
     amount: '33600'
   }, {
-    blockName: 'Aranthangi',
-    area: '210',
+    blockName: 'Gandarvakottai',
+    area: '420861388.135',
     amount: '126000'
   }
 ];
 const blocks3 = [
   {
-    area: '80',
+    area: '489934204.904',
     amount: '64000',
-    blockName: 'Alangudi'
+    blockName: 'Viralimalai'
   },
   {
-    area: '80',
+    area: '328357656.24',
     amount: '64000',
     blockName: 'Pudhukottai'
   }, {
-    blockName: 'Buppur',
-    area: '163',
+    blockName: 'Thiruvarankulam',
+    area: '385077491.95',
     amount: '48900'
   }
 ];
