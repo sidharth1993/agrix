@@ -93,7 +93,7 @@ class Map extends Component {
           feature => {
             const { values_ } = feature;
             if (values_) {
-              popup.show(event.coordinate, `<div><p>Area: ${values_.AREA}sq.km</p><p>Expected Claim Amount: ${this.profit(values_.yield)}</p></div>`);
+              popup.show(event.coordinate, `<div><p>Area: ${values_.AREA}sq.km</p><p>Expected Claim Amount: $${values_.amount || 0}</p></div>`);
             }
           },
           {
