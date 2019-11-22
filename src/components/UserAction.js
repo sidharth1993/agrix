@@ -23,6 +23,10 @@ const UserAction = ({ logged, setLogged }) => {
     let {REACT_APP_DOMAIN: domain, REACT_APP_LOGIN_PORT : port} = process.env;
     axios.post('https://agrix-api.herokuapp.com/server/api/user/logout').then(() =>{
       setLogged(false);
+      const location = {
+        pathname: '/',
+        state: { fromDashboard: true }
+      }
     });
   }
   const menu = (
@@ -31,7 +35,7 @@ const UserAction = ({ logged, setLogged }) => {
         <Link to="/analysis">Analysis</Link>
       </Menu.Item>
       <Menu.Item onClick={handleClick}>
-        <Link to="/">Logout</Link>
+        <Link>Logout</Link>
       </Menu.Item>
     </Menu>
   );

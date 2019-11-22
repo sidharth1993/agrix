@@ -2,7 +2,7 @@
   "name": "agri-x",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://sidharth1993.github.io/agrix",
+  "homepage": "https://manoaravindhan.github.io/agrix",
   "dependencies": {
     "antd": "^3.25.1",
     "apexcharts": "^3.10.1",
