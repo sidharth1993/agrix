@@ -171,45 +171,49 @@ const Map = ({height,width,logged}) => {
     });
   },[]);
 
+  const effectComponentDidUpdate = ()=>{
+    if (logged && level === -1) {
+      let hide = message.loading('Loading Map', 0);
+      axios.get(`https://agrix-api.herokuapp.com/server/api/location/geojson`).then(res => {
+        if (!res.data.status) {
+          return;
+        }
+        //setLevel(0);
+        level = 0;
+        let boundarySource = new VectorSource({
+          features: (new GeoJSON({
+            dataProjection: 'EPSG:4326',
+            featureProjection: 'EPSG:3857'
+          })).readFeatures(res.data.data)
+        });
+        olmap.getLayers().array_[1].setSource(boundarySource);
+        setTimeout(() => {
+          fitToExtent(olmap.getLayers().array_[1].getSource().getFeatures()[0])
+          hide();
+          message.info('Hint: Double click to load districts!')
+        }, 1000);
+        olmap.addInteraction(select);
+        select.on('select', e => {
+          try {
+              const id = e.selected[0].getProperties('values_').OBJECTID;
+              selectArea(e.target, id);
+              if (e.selected[0].values_.BLOCKS_)
+                fitToExtent(e.target.getFeatures().getArray()[0])              
+          } catch (e) {
+            console.log(e);
+          }
+        });
+      });
+    } else {
+        clearLayers();
+        olmap.removeInteraction(select);
+        select.removeEventListener('select');
+    } 
+  }
+
   //componentDidUpdate
   useEffect(()=>{
-      if (logged && level === -1) {
-        let hide = message.loading('Loading Map', 0);
-        axios.get(`https://agrix-api.herokuapp.com/server/api/location/geojson`).then(res => {
-          if (!res.data.status) {
-            return;
-          }
-          //setLevel(0);
-          level = 0;
-          let boundarySource = new VectorSource({
-            features: (new GeoJSON({
-              dataProjection: 'EPSG:4326',
-              featureProjection: 'EPSG:3857'
-            })).readFeatures(res.data.data)
-          });
-          olmap.getLayers().array_[1].setSource(boundarySource);
-          setTimeout(() => {
-            fitToExtent(olmap.getLayers().array_[1].getSource().getFeatures()[0])
-            hide();
-            message.info('Hint: Double click to load districts!')
-          }, 1000);
-          olmap.addInteraction(select);
-          select.on('select', e => {
-            try {
-                const id = e.selected[0].getProperties('values_').OBJECTID;
-                selectArea(e.target, id);
-                if (e.selected[0].values_.BLOCKS_)
-                  fitToExtent(e.target.getFeatures().getArray()[0])              
-            } catch (e) {
-              console.log(e);
-            }
-          });
-        });
-      } else {
-          clearLayers();
-          olmap.removeInteraction(select);
-          select.removeEventListener('select');
-      } 
+    setTimeout(effectComponentDidUpdate,100);
     },[logged]);
   
   //updateMap
