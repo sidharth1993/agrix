@@ -1,7 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Upload, Modal, message, Icon } from "antd";
-import './styles/dropzone.scss';
 
 const { Dragger } = Upload;
 

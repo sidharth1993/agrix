@@ -18,7 +18,6 @@ import './styles/map.scss';
 import MapControl from './MapControls';
 import 'ol/ol.css';
 import { message } from 'antd';
-import './Map.css';
 
 const center = [0, 0];
 const { REACT_APP_DOMAIN: domain, REACT_APP_LOGIN_PORT: port } = process.env;
