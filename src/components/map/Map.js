@@ -84,6 +84,8 @@ class Map extends Component {
         return '$900'
       case 'Crops failed in 30 days':
         return '$0'
+      default:
+        return 'Not Applicable'
     }
   }
   showPop = () => {
