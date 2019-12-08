@@ -18,7 +18,6 @@ import { Vector as VectorSource } from 'ol/source';
 import './styles/map.scss';
 import MapControl from './MapControls';
 import 'ol/ol.css';
-import './Map.css';
 import { message, Checkbox, Card, Typography } from 'antd';
 import { filterGeo } from './utils/filter';
 import Popup from 'ol-popup';
@@ -84,6 +83,8 @@ class Map extends Component {
         return '$900'
       case 'Crops failed in 30 days':
         return '$0'
+      default:
+        return 'Not Applicable'
     }
   }
   showPop = () => {
