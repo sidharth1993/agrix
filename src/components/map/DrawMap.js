@@ -6,8 +6,8 @@ import './styles/map.scss';
 import MapControl from './MapControls';
 import 'ol/ol.css';
 import { message } from 'antd';
-import 'leaflet/dist/leaflet.css';
 import * as L from 'leaflet';
+import 'leaflet-draw';
 
 const center = [0, 0];
 const { REACT_APP_DOMAIN: domain, REACT_APP_LOGIN_PORT: port } = process.env;
@@ -21,6 +21,7 @@ const styleBorder = feature => new Style({
     color: 'rgba(0, 0, 0, 0)'
   })
 });
+
 
 const styleDt = feature => new Style({
   stroke: new Stroke({
@@ -117,11 +118,25 @@ const DrawMap = ({height,width,logged}) => {
         }
         level = 0;
         const geoJson = L.geoJSON(res.data.data, {
+          drawControl: true,
           style: function (feature) {
               return {color: feature.properties.color};
           }
           }).addTo(map);
           map.fitBounds(geoJson.getBounds());
+
+          let draw = new L.FeatureGroup();
+          map.addLayer(draw);
+          let drawControl = new L.Control.Draw({
+            edit:{
+              featureGroup: draw
+            }
+          });
+          map.addControl(drawControl);
+          map.on(L.Draw.Event.CREATED, (e)=>{
+            map.addLayer(e.layer);
+         });
+
         setTimeout(() => {
           hide();
           map.on('dblclick',(event)=>{

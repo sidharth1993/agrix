@@ -11,6 +11,7 @@
     "customize-cra": "^0.8.0",
     "gh-pages": "^2.1.1",
     "leaflet": "^1.6.0",
+    "leaflet-draw": "^1.0.4",
     "node-sass": "^4.13.0",
     "ol": "^6.1.1",
     "ol-popup": "^4.0.0",
