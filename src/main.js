@@ -25,8 +25,8 @@ function Main(props) {
     ];
     const getRoutes = ()=>{
         if(logged){
-            return routes.map(e=>(
-                <Route exact path={e.path} >
+            return routes.map((e,index)=>(
+                <Route key={index} exact path={e.path} >
                     {e.component}
                 </Route>)
                 )

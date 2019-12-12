@@ -1,23 +1,13 @@
-import React, { useState, useEffect } from "react";
-import OlMap from "ol/Map";
-import OlView from "ol/View";
-import OlLayerTile from "ol/layer/Tile";
-import GeoJSON from 'ol/format/GeoJSON';
-import OlSourceOSM from "ol/source/OSM";
-import Zoom from 'ol/control/Zoom';
-import { defaults } from 'ol/interaction'
-import Draw from 'ol/interaction/Draw';
-import { doubleClick } from 'ol/events/condition';
-import Select from 'ol/interaction/Select';
+import React, { useState, useEffect, useRef } from "react";
 import { Fill, Stroke, Style, Text} from 'ol/style';
 import windowDimensions from 'react-window-dimensions';
 import axios from 'axios';
-import { Vector as VectorLayer } from 'ol/layer';
-import { Vector as VectorSource } from 'ol/source';
 import './styles/map.scss';
 import MapControl from './MapControls';
 import 'ol/ol.css';
 import { message } from 'antd';
+import 'leaflet/dist/leaflet.css';
+import * as L from 'leaflet';
 
 const center = [0, 0];
 const { REACT_APP_DOMAIN: domain, REACT_APP_LOGIN_PORT: port } = process.env;
@@ -50,183 +40,106 @@ const styleDt = feature => new Style({
 let olmap = null;
 const defaultZoom = 1;
 const defaultShowSubmit = false;
-const defaultLevel = -1;
-let draw = null;
-const drawSource = new VectorSource({ wrapX: false });
-const drawVector = new VectorLayer({ source: drawSource });
-const drawNewPoly = { source: drawSource, type: 'Polygon'};
+const defaultPosition = [0,0];
 
-const Map = ({height,width,logged}) => {
+let level = -1;
+let map = null;
+let featureGeoJson = null;
+const DrawMap = ({height,width,logged}) => {
 
   const [zoom, setZoom] = useState(defaultZoom);
   const [showSubmit, setShowSubmit] = useState(defaultShowSubmit);
-  //const [level, setLevel] = useState(defaultLevel);
-  let level = defaultLevel;
+  const [geo,setGeo] = useState();
+  const [position,setPosition] = useState(defaultPosition);
+  
+  const geoRef = useRef();
+  const mapRef = useRef();
+  //updateMap
 
-  const handleSubmit = (showSubmit) => {
-    setShowSubmit(showSubmit);
-  }
+  useEffect(()=>{
+    map = L.map('map').setView([0,0], 2);
 
-  const toggleEdit = (edit) => {
-    if (edit) {
-        olmap.getLayers().array_[2].getSource().clear();
-        draw = new Draw(drawNewPoly);
-        draw.on('drawend', () => { setShowSubmit(true) });
-        olmap.addInteraction(draw);
-    } else {
-        olmap && draw && olmap.removeInteraction(draw);
-        draw && draw.removeEventListener('drawend');
-        draw = null;
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+      maxZoom: 18,
+      attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+        '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+        'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+      id: 'mapbox.light'
+    }).addTo(map);
+  },[]);
+
+  const onEachFeature = (feature, layer)=>{
+    if (feature.properties && feature.properties.District) {
+        layer.on('dblclick',(event)=>{
+          selectArea(event.target.feature.properties.OBJECTID);
+        });
     }
 }
 
-  const clearDraw = () => {
-    toggleEdit(false);
-    olmap.getLayers().array_[2].getSource().clear();
-  }
-
-  const fitToExtent = feature => {
-    olmap.getView().fit(feature.getGeometry().getExtent(), { duration: 2000 });
-  }
-
-  const selectArea = (source, id) => {
+  const selectArea = (id) => {
     let url = `https://agrix-api.herokuapp.com/server/api/division?level=${level}`;
     if (level === 1)
       url += `&blockId=${id}`;
     if (level === 0 || (level === 1 && id)) {
       let hide = message.loading('Loading Map', 0);
       axios.get(url).then(res => {
-        if (!res.data.status)
+        if(!res.data.status)
           return;
-        let boundarySource = new VectorSource({
-          features: (new GeoJSON({
-            dataProjection: 'EPSG:4326',
-            featureProjection: 'EPSG:3857'
-          })).readFeatures(res.data.data)
-        });
-        let layer;
-        if (level === 0) {
-          layer = olmap.getLayers().array_[1]
-          //setLevel(1);
-          level = 1;
-        } else if (level === 1) {
-          layer = olmap.getLayers().array_[3];
-        }
-        layer.setSource(boundarySource);
-        setTimeout(() => {
-          if (level === 1) {
-            fitToExtent(source.getFeatures().getArray()[0])
+          if(level === 1){
+            if(featureGeoJson){
+              map.removeLayer(featureGeoJson);
+            } 
+            featureGeoJson = L.geoJSON(res.data.data).addTo(map);
+            map.fitBounds(featureGeoJson.getBounds());
           }
-        }, 500);
+        if(level === 0) {
+          let geoJson = L.geoJSON(res.data.data,{
+            onEachFeature: onEachFeature
+          }).addTo(map);
+          map.fitBounds(geoJson.getBounds());
+            level = 1;
+          }
         hide();
       }, res => { if (level === 0) hide(); });
     }
   }
 
-  const select = new Select({
-    condition: doubleClick
-  })
-
-  const clearLayers = () => {
-    let layers = olmap.getLayers().array_;
-    layers.forEach(layer => {
-      layer.getSource().clear();
-    });
-  }
-
-  //componentDidMount
   useEffect(()=>{
-    const boundarySource = new VectorSource();
-    const boundaryLayer = new VectorLayer({ source: boundarySource, style: f => styleBorder(f) });
-    const level1Source = new VectorSource();
-    const level1Layer = new VectorLayer({ source: level1Source, style: f => styleDt(f) });
-  
-    const view = new OlView({center, zoom: zoom});
-    const raster = new OlLayerTile({
-      source: new OlSourceOSM()
-    });
-    olmap = new OlMap({
-      interactions: defaults({
-        doubleClickZoom: false
-      }),
-      target: null,
-      layers: [
-        raster,
-        boundaryLayer,
-        drawVector,
-        level1Layer
-      ],
-      controls: [
-        new Zoom({
-          className: 'zoom'
-        })
-      ],
-      view: view
-    });
-    olmap.setTarget("draw-map");
-    olmap.on("moveend", () => {
-      let newZoom = olmap.getView().getZoom();
-      setZoom(newZoom);
-    });
-  },[]);
+    setTimeout(effectComponentDidUpdate,100);
+  },[logged]);
 
   const effectComponentDidUpdate = ()=>{
-    if (logged && level === -1) {
+    if (logged) {
       let hide = message.loading('Loading Map', 0);
       axios.get(`https://agrix-api.herokuapp.com/server/api/location/geojson`).then(res => {
         if (!res.data.status) {
           return;
         }
-        //setLevel(0);
         level = 0;
-        let boundarySource = new VectorSource({
-          features: (new GeoJSON({
-            dataProjection: 'EPSG:4326',
-            featureProjection: 'EPSG:3857'
-          })).readFeatures(res.data.data)
-        });
-        olmap.getLayers().array_[1].setSource(boundarySource);
+        const geoJson = L.geoJSON(res.data.data, {
+          style: function (feature) {
+              return {color: feature.properties.color};
+          }
+          }).addTo(map);
+          map.fitBounds(geoJson.getBounds());
         setTimeout(() => {
-          fitToExtent(olmap.getLayers().array_[1].getSource().getFeatures()[0])
           hide();
+          map.on('dblclick',(event)=>{
+            if(level === 0)
+            selectArea(0);
+          });
           message.info('Hint: Double click to load districts!')
         }, 1000);
-        olmap.addInteraction(select);
-        select.on('select', e => {
-          try {
-              const id = e.selected[0].getProperties('values_').OBJECTID;
-              selectArea(e.target, id);
-              if (e.selected[0].values_.BLOCKS_)
-                fitToExtent(e.target.getFeatures().getArray()[0])              
-          } catch (e) {
-            console.log(e);
-          }
-        });
       });
-    } else {
-        clearLayers();
-        olmap.removeInteraction(select);
-        select.removeEventListener('select');
     } 
   }
+    
 
-  //componentDidUpdate
-  useEffect(()=>{
-    setTimeout(effectComponentDidUpdate,100);
-    },[logged]);
-  
-  //updateMap
   return (
     <>
-    {olmap && olmap.getView().setZoom(zoom)}
-      <div id="draw-map" style={{ width: "100%", height: `${height - 67}px` }}></div>
-      {logged && <MapControl
-        editAction={toggleEdit}
-        clearDraw={clearDraw}
-        handleSubmit={handleSubmit}
-        submit={showSubmit}/>}
+    <div id='map'></div>
     </>
   )
 }
 
-export default windowDimensions()(Map);
+export default windowDimensions()(DrawMap);
